@@ -1,10 +1,7 @@
-#include <iostream>
-#include <vector>
-#include <SFML/Graphics.hpp>
-#include "Game.h"
+#include "headers.h"
 int main()
 {
-    sf::RenderWindow window(sf::VideoMode(800, 600), "SFML Game");
+    sf::RenderWindow window(sf::VideoMode(450, 450), "SFML Game");
     Game game(window);
     game.run();
 

@@ -1,50 +1,30 @@
-
 #include <SFML/Graphics.hpp>
+#include <iostream>
+#include <vector>
 
 class Game
 {
 public:
-    Game(sf::RenderWindow &window) : window(window)
-    {
-        shape.setRadius(100.f);
-        colors = {sf::Color::Red, sf::Color::Green, sf::Color::Blue, sf::Color::Yellow};
-        colorIndex = 0;
-    }
-    void reFactorShape(float x)
-    {
-        shape.setRadius(x);
-    }
-    void run()
-    {
-        sf::Clock clock;
-        while (window.isOpen())
-        {
-            sf::Event event;
-            while (window.pollEvent(event))
-            {
-                if (event.type == sf::Event::Closed)
-                {
-                    window.close();
-                }
-            }
-
-            if (clock.getElapsedTime().asSeconds() >= 1.0f)
-            {
-                clock.restart();
-                reFactorShape(10.f + colorIndex * 5.f);
-                colorIndex = (colorIndex + 1) % colors.size();
-                shape.setFillColor(colors[colorIndex]);
-            }
-
-            window.clear();
-            window.draw(shape);
-            window.display();
-        }
-    }
+    Game(sf::RenderWindow &window);
+    void run();
+    void handleEvents();
+    void goLeft();
+    void goRight();
 
 private:
+    void reFactorShape(float x);
+
+    // rendered windows
     sf::RenderWindow &window;
-    sf::CircleShape shape;
+    // text and font
+    sf::Text text;
+    sf::Font font;
     std::vector<sf::Color> colors;
+    // shape & it's position
+    sf::Vector2f position;
+    sf::CircleShape shape;
+    // key / mouse event
+    sf::Event event;
+    float const radius = 25.f;
     int colorIndex;
 };
