@@ -1,0 +1,3 @@
+g++ -c Student.cpp test.cpp
+
+g++ -o test Student.o test.o
