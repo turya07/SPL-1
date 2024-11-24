@@ -2,10 +2,13 @@
 
 Game::Game(sf::RenderWindow &window) : window(window)
 {
+
     colors = {sf::Color::Red, sf::Color::Green, sf::Color::Blue, sf::Color::Yellow};
-    colorIndex = 0; 
+    colorIndex = 0;
     reFactorShape(radius);
-    shape.setPosition(window.getSize().x / 2 - radius, window.getSize().y / 2 - radius);
+    shape.setPosition(window.getSize().x / 2 - radius, window.getSize().y - radius * 2 - 5.0f);
+
+    // load font
     if (font.loadFromFile("fonts/firacode.ttf"))
     {
         std::cout << "Font loaded successfully" << std::endl;
@@ -16,12 +19,15 @@ Game::Game(sf::RenderWindow &window) : window(window)
     }
 
     // Use the default font
+    font.setSmooth(true);
     text.setFont(font);
-    text.setString("Hello, world!");
-    text.setCharacterSize(30);
-    text.setFillColor(sf::Color::Red);
-    text.setPosition(window.getSize().x / 2 ,
-                     window.getSize().y / 2);
+    text.setCharacterSize(24);
+    std::string scoreText = "Score: " + std::to_string(score);
+    text.setString(scoreText);
+    text.setFillColor(sf::Color::White);
+    text.setPosition(window.getSize().x / 2 - text.getCharacterSize(), 0);
+    std::cout << "Text position: " << text.getPosition().x << " " << text.getPosition().y << std::endl;
+    std::cout << text.getCharacterSize() << std::endl;
 }
 
 void Game::reFactorShape(float x)
@@ -29,36 +35,81 @@ void Game::reFactorShape(float x)
     shape.setRadius(x);
 }
 
+void Game::createRandomObjects(int n, sf::RenderWindow &window)
+{
+    dots = std::vector<Dot>();
+    for (int i = 0; i < n; i++)
+    {
+        float x = rand() % window.getSize().x;
+        float y = rand() % window.getSize().y;
+        sf::Color color = colors[rand() % colors.size()];
+        Dot *dot = new Dot(x, y, 2.5f, color);
+        dots.push_back(*dot);
+    }
+}
+
+void Game::drawObjects(sf::RenderWindow &window)
+{
+    // update positons of each dot
+    for (auto &&dot : dots)
+    {
+        dot.updatePosition(0.0f, 2.0f);
+
+        dot.draw(window);
+    }
+}
+
+void Game::updateScore()
+{
+    std::string scoreText = "Score: " + std::to_string(score);
+    for (auto &&dot : dots)
+    {
+        if (dot.checkTouched(shape))
+        {
+            score++;
+            dots.erase(dots.begin());
+        }
+    }
+
+    text.setString(scoreText);
+}
+
 void Game::run()
 {
     sf::Clock clock;
+    createRandomObjects(50, window);
+    shape.setFillColor(sf::Color::White);
     while (window.isOpen())
     {
         handleEvents();
 
-        if (clock.getElapsedTime().asSeconds() >= 1.0f)
+        // update screen by 1s
+        if (clock.getElapsedTime().asMilliseconds() > 150)
         {
+
+            window.clear();
+            drawObjects(window);
+            updateScore();
             clock.restart();
-            colorIndex = (colorIndex + 1) % colors.size();
-            shape.setFillColor(colors[colorIndex]);
         }
-
-        window.clear();
+        window.draw(text);
         window.draw(shape);
-
         window.display();
     }
 }
+
 void Game::goLeft()
 {
     if (position.x > 10.0f)
-        shape.setPosition(position.x - 15.0f, position.y);
+        shape.move(-15.0f, 0);
 }
+
 void Game::goRight()
 {
-    if (position.x < window.getSize().x - shape.getRadius() * 2 - 10.0f)
-        shape.setPosition(position.x + 15.0f, position.y);
+    if (position.x < window.getSize().x - radius * 2 - 10.0f)
+        shape.move(15.0f, 0);
 }
+
 void Game::handleEvents()
 {
     while (window.pollEvent(event))
@@ -82,10 +133,6 @@ void Game::handleEvents()
             goLeft();
         }
 
-        if (event.type == sf::Event::MouseMoved && sf::Mouse::isButtonPressed(sf::Mouse::Left))
-        {
-            shape.setPosition(sf::Mouse::getPosition(window).x - radius, position.y);
-        }
         else if (event.type == sf::Event::KeyPressed && event.key.code == sf::Keyboard::Space)
         {
             shape.setPosition(window.getSize().x / 2 - radius, position.y);

@@ -1,6 +1,7 @@
-#include <SFML/Graphics.hpp>
 #include <iostream>
 #include <vector>
+
+#include "Dot.h"
 
 class Game
 {
@@ -8,12 +9,14 @@ public:
     Game(sf::RenderWindow &window);
     void run();
     void handleEvents();
-    void goLeft();
-    void goRight();
 
+    void createRandomObjects(int, sf::RenderWindow &);
+    void drawObjects(sf::RenderWindow &);
+    void updateScore();
 private:
     void reFactorShape(float x);
-
+    void goLeft();
+    void goRight();
     // rendered windows
     sf::RenderWindow &window;
     // text and font
@@ -27,4 +30,6 @@ private:
     sf::Event event;
     float const radius = 25.f;
     int colorIndex;
+    int score = 0;
+    std::vector<Dot> dots;
 };
