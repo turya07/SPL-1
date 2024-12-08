@@ -1,5 +1,6 @@
 #include <SFML/Graphics.hpp>
 #include <vector>
+#include <fstream>
 #include "Block.hpp"
 
 #define BOX_DIMENSION 400
@@ -12,35 +13,63 @@ public:
     }
     void playGame()
     {
-        sf::RenderWindow window(sf::VideoMode(BOX_DIMENSION*2, BOX_DIMENSION*2), "Escape The Cope");
+        sf::RenderWindow window(sf::VideoMode(BOX_DIMENSION * 2, BOX_DIMENSION * 2), "Escape The Cope");
 
         std::vector<std::vector<Block>> blocks;
-
-        for (int i = 0; i <= BOX_DIMENSION / BLOCK_SIZE; i++)
+        // read level from file
+        std::ifstream file("levels/easy/2.txt");
+        if (!file.is_open())
         {
-            blocks.push_back(std::vector<Block>());
-            for (int j = 0; j <= BOX_DIMENSION / BLOCK_SIZE; j++)
+            std::cout << "Error opening file" << std::endl;
+            return;
+        }
+        std::string line;
+        while (std::getline(file, line))
+        {
+            std::vector<Block> row;
+            for (int i = 0; i < line.size(); i++)
             {
-                if (i == 0 || j == 0 || i == BOX_DIMENSION / BLOCK_SIZE || j == BOX_DIMENSION / BLOCK_SIZE)
-                    blocks[i].push_back(Block(BLOCK_SIZE, i * BLOCK_SIZE + BLOCK_SIZE, j * BLOCK_SIZE + BLOCK_SIZE));
+                Block b(BLOCK_SIZE, i * BLOCK_SIZE, blocks.size() * BLOCK_SIZE);
+                if (line[i] == '#')
+                {
+                    b.setColor(sf::Color::White);
+                    b.setOutlineColor(sf::Color::Black);
+                }
                 else
                 {
-                    Block b(BLOCK_SIZE, i * BLOCK_SIZE, j * BLOCK_SIZE);
-                    int RandomFactor = rand() % 2;
-                    if (RandomFactor == 1)
-                    {
-                        b.setColor(sf::Color::Transparent);
-                        b.setOutlineColor(sf::Color::Transparent);
-                    }
-                    else
-                    {
-                        b.setColor(sf::Color::White);
-                        b.setOutlineColor(sf::Color::Black);
-                    }
-                    blocks[i].push_back(b);
+                    b.setColor(sf::Color::Transparent);
+                    b.setOutlineColor(sf::Color::Transparent);
                 }
+                row.push_back(b);
             }
+            blocks.push_back(row);
         }
+
+        // for (int i = 0; i <= BOX_DIMENSION / BLOCK_SIZE; i++)
+        // {
+        //     blocks.push_back(std::vector<Block>());
+        //     for (int j = 0; j <= BOX_DIMENSION / BLOCK_SIZE; j++)
+        //     {
+        //         if (i == 0 || j == 0 || i == BOX_DIMENSION / BLOCK_SIZE || j == BOX_DIMENSION / BLOCK_SIZE)
+        //             blocks[i].push_back(Block(BLOCK_SIZE, i * BLOCK_SIZE + BLOCK_SIZE, j * BLOCK_SIZE + BLOCK_SIZE));
+        //         else
+        //         {
+        //             Block b(BLOCK_SIZE, i * BLOCK_SIZE, j * BLOCK_SIZE);
+        //             int RandomFactor = rand() % 2;
+        //             if (RandomFactor == 1)
+        //             {
+        //                 b.setColor(sf::Color::Transparent);
+        //                 b.setOutlineColor(sf::Color::Transparent);
+        //             }
+        //             else
+        //             {
+        //                 b.setColor(sf::Color::White);
+        //                 b.setOutlineColor(sf::Color::Black);
+        //             }
+        //             blocks[i].push_back(b);
+        //         }
+        //     }
+        // }
 
         Block theif(BLOCK_SIZE, BOX_DIMENSION / 2, BOX_DIMENSION / 2);
         theif.setOutlineColor(sf::Color::White);
