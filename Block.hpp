@@ -59,7 +59,7 @@ public:
         if (ev.key.code == SP)
         {
             // assign to center of boundary
-            block.setPosition(endBoundary.x / 2, endBoundary.y / 2);
+            // block.setPosition(endBoundary.x / 2, endBoundary.y / 2);
         }
     }
 

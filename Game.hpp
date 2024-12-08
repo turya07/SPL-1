@@ -12,7 +12,7 @@ public:
     }
     void playGame()
     {
-        sf::RenderWindow window(sf::VideoMode(600, 600), "Escape The Cope");
+        sf::RenderWindow window(sf::VideoMode(BOX_DIMENSION*2, BOX_DIMENSION*2), "Escape The Cope");
 
         std::vector<std::vector<Block>> blocks;
 
