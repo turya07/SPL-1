@@ -2,6 +2,7 @@
 #include <vector>
 #include <fstream>
 #include "Block.hpp"
+#include <iostream>
 
 #define BOX_DIMENSION 400
 #define BLOCK_SIZE 20
@@ -11,13 +12,15 @@ public:
     Game()
     {
     }
-    void playGame()
+    void playGame(std::string lv)
     {
-        sf::RenderWindow window(sf::VideoMode(BOX_DIMENSION * 2, BOX_DIMENSION * 2), "Escape The Cope");
+        window.create(sf::VideoMode(BOX_DIMENSION * 2, BOX_DIMENSION * 2), "Escape The Cope");
 
         std::vector<std::vector<Block>> blocks;
         // read level from file
-        std::ifstream file("levels/easy/2.txt");
+        
+        std::string levelName = "./levels/" + lv + ".txt";
+        std::ifstream file(levelName);
         if (!file.is_open())
         {
             std::cout << "Error opening file" << std::endl;
@@ -102,9 +105,91 @@ public:
 
         return;
     }
+
+    std::string showMenu()
+    {
+        sf::Font font;
+        if (!font.loadFromFile("./fonts/firacode.ttf"))
+        {
+            std::cout << "Error loading font" << std::endl;
+            return "";
+        }
+
+        sf::Text title("Select Difficulty", font, 30);
+        title.setPosition(BOX_DIMENSION - 100, 50);
+
+        sf::Text easy("Easy", font, 20);
+        easy.setPosition(BOX_DIMENSION - 50, 150);
+
+        sf::Text medium("Medium", font, 20);
+        medium.setPosition(BOX_DIMENSION - 50, 200);
+
+        sf::Text hard("Hard", font, 20);
+        hard.setPosition(BOX_DIMENSION - 50, 250);
+
+        std::vector<sf::Text> levels;
+        for (int i = 1; i <= 5; ++i)
+        {
+            sf::Text level(std::to_string(i), font, 20);
+            level.setPosition(BOX_DIMENSION - 50, 300 + i * 50);
+            levels.push_back(level);
+        }
+
+        std::string selectedLevel = "";
+
+        while (window.isOpen())
+        {
+            sf::Event event;
+            while (window.pollEvent(event))
+            {
+                if (event.type == sf::Event::Closed)
+                    window.close();
+
+                if (event.type == sf::Event::MouseButtonPressed)
+                {
+                    sf::Vector2i mousePos = sf::Mouse::getPosition(window);
+                    if (easy.getGlobalBounds().contains(mousePos.x, mousePos.y))
+                    {
+                        selectedLevel = "easy/";
+                    }
+                    else if (medium.getGlobalBounds().contains(mousePos.x, mousePos.y))
+                    {
+                        selectedLevel = "medium/";
+                    }
+                    else if (hard.getGlobalBounds().contains(mousePos.x, mousePos.y))
+                    {
+                        selectedLevel = "hard/";
+                    }
+
+                    for (int i = 0; i < levels.size(); ++i)
+                    {
+                        if (levels[i].getGlobalBounds().contains(mousePos.x, mousePos.y))
+                        {
+                            selectedLevel += std::to_string(i + 1);
+                            return selectedLevel;
+                        }
+                    }
+                }
+            }
+
+            window.clear();
+            window.draw(title);
+            window.draw(easy);
+            window.draw(medium);
+            window.draw(hard);
+            for (auto &level : levels)
+            {
+                window.draw(level);
+            }
+            window.display();
+        }
+
+        return selectedLevel;
+    }
     ~Game()
     {
     }
 
 private:
+    sf::RenderWindow window;
 };

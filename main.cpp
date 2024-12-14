@@ -3,5 +3,8 @@
 int main()
 {
     Game game;
-    game.playGame();
+    std::string levelName;
+    levelName = game.showMenu();
+    std::cout << "Level Name: " << levelName << std::endl;
+    game.playGame(levelName);
 }
