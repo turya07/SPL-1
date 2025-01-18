@@ -1,24 +1,33 @@
-#include <SFML/Graphics.hpp>
-#include <vector>
-#include <fstream>
-#include "Block.hpp"
-#include <iostream>
+#include "header.hpp"
 
-#define BOX_DIMENSION 400
-#define BLOCK_SIZE 20
+#define BOX_DIMENSION (int)720
+#define BLOCK_SIZE (int)20
+#define TRANSPARENT sf::Color::Transparent
+#define WHITE sf::Color::White
+#define BLACK sf::Color::Black
+#define RED sf::Color::Red
+#define BLUE sf::Color::Blue
+#define YELLOW sf::Color::Yellow
+
 class Game
 {
 public:
+    sf::RenderWindow window;
+
     Game()
     {
     }
+    void initGame()
+    {
+        this->window.create(sf::VideoMode(BOX_DIMENSION, BOX_DIMENSION, 24), "Escape The Cope");
+    }
     void playGame(std::string lv)
     {
-        window.create(sf::VideoMode(BOX_DIMENSION * 2, BOX_DIMENSION * 2), "Escape The Cope");
+        initGame();
 
         std::vector<std::vector<Block>> blocks;
         // read level from file
-        
+
         std::string levelName = "./levels/" + lv + ".txt";
         std::ifstream file(levelName);
         if (!file.is_open())
@@ -32,51 +41,33 @@ public:
             std::vector<Block> row;
             for (int i = 0; i < line.size(); i++)
             {
-                Block b(BLOCK_SIZE, i * BLOCK_SIZE, blocks.size() * BLOCK_SIZE);
+                Block b(BLOCK_SIZE, (i + 1) * BLOCK_SIZE, (blocks.size() + 1) * BLOCK_SIZE);
                 if (line[i] == '#')
                 {
-                    b.setColor(sf::Color::White);
-                    b.setOutlineColor(sf::Color::Black);
+                    b.setColor(WHITE);
+                    b.setOutlineColor(TRANSPARENT);
                 }
                 else
                 {
-                    b.setColor(sf::Color::Transparent);
-                    b.setOutlineColor(sf::Color::Transparent);
+                    b.setColor(TRANSPARENT);
+                    b.setOutlineColor(TRANSPARENT);
                 }
                 row.push_back(b);
             }
             blocks.push_back(row);
         }
 
-        // for (int i = 0; i <= BOX_DIMENSION / BLOCK_SIZE; i++)
-        // {
-        //     blocks.push_back(std::vector<Block>());
-        //     for (int j = 0; j <= BOX_DIMENSION / BLOCK_SIZE; j++)
-        //     {
-        //         if (i == 0 || j == 0 || i == BOX_DIMENSION / BLOCK_SIZE || j == BOX_DIMENSION / BLOCK_SIZE)
-        //             blocks[i].push_back(Block(BLOCK_SIZE, i * BLOCK_SIZE + BLOCK_SIZE, j * BLOCK_SIZE + BLOCK_SIZE));
-        //         else
-        //         {
-        //             Block b(BLOCK_SIZE, i * BLOCK_SIZE, j * BLOCK_SIZE);
-        //             int RandomFactor = rand() % 2;
-        //             if (RandomFactor == 1)
-        //             {
-        //                 b.setColor(sf::Color::Transparent);
-        //                 b.setOutlineColor(sf::Color::Transparent);
-        //             }
-        //             else
-        //             {
-        //                 b.setColor(sf::Color::White);
-        //                 b.setOutlineColor(sf::Color::Black);
-        //             }
-        //             blocks[i].push_back(b);
-        //         }
-        //     }
-        // }
+        Block theif(BLOCK_SIZE, BLOCK_SIZE * 3, BLOCK_SIZE * 3);
+        Block police1(BLOCK_SIZE, BLOCK_SIZE * 15, BLOCK_SIZE * 3);
+        Block police2(BLOCK_SIZE, BLOCK_SIZE * 15, BLOCK_SIZE * 5);
 
-        Block theif(BLOCK_SIZE, BOX_DIMENSION / 2, BOX_DIMENSION / 2);
-        theif.setOutlineColor(sf::Color::White);
-        theif.setColor(sf::Color::Red);
+        theif.setOutlineColor(WHITE);
+        theif.setColor(RED);
+
+        // police
+        police1.setColor(BLUE);
+        police2.setColor(YELLOW);
+
 
         while (window.isOpen())
         {
@@ -86,6 +77,11 @@ public:
 
                 if (event.type == sf::Event::Closed)
                     window.close();
+                if (event.type == sf::Event::KeyPressed && event.key.code == sf::Keyboard::Space)
+                {
+                    window.close();
+                    return;
+                }
                 if (event.type == sf::Event::KeyPressed)
                     theif.move(event, blocks.front().front().getPosition(), blocks.back().back().getPosition(), blocks);
             }
@@ -98,7 +94,6 @@ public:
                     bxy.draw(window);
                 }
             }
-
             theif.draw(window);
             window.display();
         }
@@ -108,30 +103,38 @@ public:
 
     std::string showMenu()
     {
+        initGame();
         sf::Font font;
         if (!font.loadFromFile("./fonts/firacode.ttf"))
         {
             std::cout << "Error loading font" << std::endl;
             return "";
         }
-
-        sf::Text title("Select Difficulty", font, 30);
-        title.setPosition(BOX_DIMENSION - 100, 50);
+        sf::Text hint("HELP: Press E/M/H for Easy,medium or hard.\nThen press 1 to 5 to continue...\n", font, 14);
+        hint.setPosition(BOX_DIMENSION / 6, 90);
+        hint.setFillColor(WHITE);
+        sf::Text title("Escape The Cop", font, 30);
+        title.setPosition(BOX_DIMENSION / 6, 50);
 
         sf::Text easy("Easy", font, 20);
-        easy.setPosition(BOX_DIMENSION - 50, 150);
+        easy.setPosition(BOX_DIMENSION / 6, 150);
 
         sf::Text medium("Medium", font, 20);
-        medium.setPosition(BOX_DIMENSION - 50, 200);
+        medium.setPosition(BOX_DIMENSION / 6, 200);
 
         sf::Text hard("Hard", font, 20);
-        hard.setPosition(BOX_DIMENSION - 50, 250);
+        hard.setPosition(BOX_DIMENSION / 6, 250);
+
+        easy.setFillColor(sf::Color::Green);
+        medium.setFillColor(sf::Color::Yellow);
+        hard.setFillColor(sf::Color::Red);
 
         std::vector<sf::Text> levels;
         for (int i = 1; i <= 5; ++i)
         {
             sf::Text level(std::to_string(i), font, 20);
-            level.setPosition(BOX_DIMENSION - 50, 300 + i * 50);
+            level.setPosition(BOX_DIMENSION / 6 + 20 * i, 280);
+            level.setOutlineColor(WHITE);
             levels.push_back(level);
         }
 
@@ -145,28 +148,64 @@ public:
                 if (event.type == sf::Event::Closed)
                     window.close();
 
-                if (event.type == sf::Event::MouseButtonPressed)
+                if (event.type == sf::Event::KeyPressed)
                 {
-                    sf::Vector2i mousePos = sf::Mouse::getPosition(window);
-                    if (easy.getGlobalBounds().contains(mousePos.x, mousePos.y))
+
+                    if (event.key.code == sf::Keyboard::E)
                     {
                         selectedLevel = "easy/";
+                        for (auto &lv : levels)
+                        {
+                            lv.setFillColor(sf::Color::Green);
+                        }
                     }
-                    else if (medium.getGlobalBounds().contains(mousePos.x, mousePos.y))
+                    else if (event.key.code == sf::Keyboard::M)
                     {
                         selectedLevel = "medium/";
+                        for (auto &lv : levels)
+                        {
+                            lv.setFillColor(sf::Color::Yellow);
+                        }
                     }
-                    else if (hard.getGlobalBounds().contains(mousePos.x, mousePos.y))
+                    else if (event.key.code == sf::Keyboard::H)
                     {
                         selectedLevel = "hard/";
+                        for (auto &lv : levels)
+                        {
+                            lv.setFillColor(sf::Color::Red);
+                        }
                     }
+                    // window.draw(hint);
+                    // window.draw(easy);
+                    // window.draw(medium);
+                    // window.draw(hard);
 
                     for (int i = 0; i < levels.size(); ++i)
                     {
-                        if (levels[i].getGlobalBounds().contains(mousePos.x, mousePos.y))
+                        switch (event.key.code)
                         {
-                            selectedLevel += std::to_string(i + 1);
+                        case sf::Keyboard::Num1:
+                            selectedLevel += '1';
+                            window.close();
                             return selectedLevel;
+                        case sf::Keyboard::Num2:
+                            selectedLevel += '2';
+                            window.close();
+                            return selectedLevel;
+                        case sf::Keyboard::Num3:
+                            selectedLevel += '3';
+                            window.close();
+                            return selectedLevel;
+                        case sf::Keyboard::Num4:
+                            selectedLevel += '4';
+                            window.close();
+                            return selectedLevel;
+                        case sf::Keyboard::Num5:
+                            selectedLevel += '5';
+                            window.close();
+                            return selectedLevel;
+                        default:
+                            break;
                         }
                     }
                 }
@@ -174,13 +213,15 @@ public:
 
             window.clear();
             window.draw(title);
+            window.draw(hint);
             window.draw(easy);
             window.draw(medium);
             window.draw(hard);
-            for (auto &level : levels)
-            {
-                window.draw(level);
-            }
+            if (selectedLevel.length() > 0)
+                for (auto &level : levels)
+                {
+                    window.draw(level);
+                }
             window.display();
         }
 
@@ -191,5 +232,4 @@ public:
     }
 
 private:
-    sf::RenderWindow window;
 };

@@ -6,5 +6,6 @@
 // graphics lib
 #include <SFML/Graphics.hpp>
 
-// custom files
-#include "Game.hpp"
+
+//local lib
+#include "Block.hpp"
