@@ -1,14 +1,14 @@
 #include "header.hpp"
 
-#define BOX_DIMENSION (int)720
-#define BLOCK_SIZE (int)20
+#define BOX_DIMENSION (int)1080
+#define BLOCK_SIZE (int)16
 #define TRANSPARENT sf::Color::Transparent
 #define WHITE sf::Color::White
 #define BLACK sf::Color::Black
 #define RED sf::Color::Red
 #define BLUE sf::Color::Blue
 #define YELLOW sf::Color::Yellow
-
+#define GREEN sf::Color::Green
 class Game
 {
 public:
@@ -19,15 +19,35 @@ public:
     }
     void initGame()
     {
-        this->window.create(sf::VideoMode(BOX_DIMENSION, BOX_DIMENSION, 24), "Escape The Cope");
+        this->window.create(sf::VideoMode(BOX_DIMENSION, BOX_DIMENSION), "Escape The Cope");
+        if (!font.loadFromFile("./fonts/firacode.ttf"))
+        {
+            std::cout << "Error loading font" << std::endl;
+        }
     }
     void playGame(std::string lv)
     {
         initGame();
+        levelInfo.setFont(font);
+        levelInfo.setCharacterSize(16);
+        levelInfo.setString("Level: " + lv + "\nCtrl+[SPACE] to Exit");
+        levelInfo.setFillColor(YELLOW);
+        levelInfo.setPosition(BOX_DIMENSION - 16 * 16, 28);
 
-        std::vector<std::vector<Block>> blocks;
+
+        otherInfo.setFont(font);
+        otherInfo.setCharacterSize(16);
+        otherInfo.setString("RED: Theif\nBLUE & YELLOW: Police\nPINK: 1 point/Fruit\n");
+        otherInfo.setFillColor(WHITE);
+        otherInfo.setPosition(BOX_DIMENSION - 16 * 16, 28*3+14);
+
+        scoreBoard.setFont(font);
+        scoreBoard.setCharacterSize(14);
+        scoreBoard.setString("Score: 00");
+        scoreBoard.setFillColor(GREEN);
+        scoreBoard.setPosition(BOX_DIMENSION - 16 * 16, 28-16);
+
         // read level from file
-
         std::string levelName = "./levels/" + lv + ".txt";
         std::ifstream file(levelName);
         if (!file.is_open())
@@ -36,12 +56,17 @@ public:
             return;
         }
         std::string line;
+        int numOfSpace = 0;
+
         while (std::getline(file, line))
         {
             std::vector<Block> row;
+            std::vector<Block> fruitRow;
+
             for (int i = 0; i < line.size(); i++)
             {
                 Block b(BLOCK_SIZE, (i + 1) * BLOCK_SIZE, (blocks.size() + 1) * BLOCK_SIZE);
+                Block f(BLOCK_SIZE / 2, (i + 1) * BLOCK_SIZE + 4, (blocks.size() + 1) * BLOCK_SIZE + 4);
                 if (line[i] == '#')
                 {
                     b.setColor(WHITE);
@@ -51,33 +76,40 @@ public:
                 {
                     b.setColor(TRANSPARENT);
                     b.setOutlineColor(TRANSPARENT);
+                    f.setColor(sf::Color::Magenta);
+                    numOfSpace++;
+                    if (numOfSpace % 3 == 0)
+                    {
+                        fruitRow.push_back(f);
+                    }
                 }
                 row.push_back(b);
             }
             blocks.push_back(row);
+            fruits.push_back(fruitRow);
         }
 
         Block theif(BLOCK_SIZE, BLOCK_SIZE * 3, BLOCK_SIZE * 3);
-        Block police1(BLOCK_SIZE, BLOCK_SIZE * 15, BLOCK_SIZE * 3);
-        Block police2(BLOCK_SIZE, BLOCK_SIZE * 15, BLOCK_SIZE * 5);
 
-        theif.setOutlineColor(WHITE);
+        theif.setOutlineColor(TRANSPARENT);
         theif.setColor(RED);
 
-        // police
+        // polic
+        Block police1(BLOCK_SIZE, BLOCK_SIZE * 9, BLOCK_SIZE * 3);
+        Block police2(BLOCK_SIZE, BLOCK_SIZE * 6, BLOCK_SIZE * 3);
         police1.setColor(BLUE);
         police2.setColor(YELLOW);
-
 
         while (window.isOpen())
         {
             sf::Event event;
+
             while (window.pollEvent(event))
             {
 
                 if (event.type == sf::Event::Closed)
                     window.close();
-                if (event.type == sf::Event::KeyPressed && event.key.code == sf::Keyboard::Space)
+                if (event.type == sf::Event::KeyPressed && event.key.code == sf::Keyboard::Space && event.key.control == true)
                 {
                     window.close();
                     return;
@@ -94,7 +126,21 @@ public:
                     bxy.draw(window);
                 }
             }
+            for (auto &&fx : fruits)
+            {
+                for (auto &&fxy : fx)
+                {
+                    fxy.draw(window);
+                }
+            }
             theif.draw(window);
+            police1.draw(window);
+            police2.draw(window);
+            window.draw(levelInfo);
+            window.draw(otherInfo);
+            window.draw(scoreBoard);
+
+
             window.display();
         }
 
@@ -104,12 +150,6 @@ public:
     std::string showMenu()
     {
         initGame();
-        sf::Font font;
-        if (!font.loadFromFile("./fonts/firacode.ttf"))
-        {
-            std::cout << "Error loading font" << std::endl;
-            return "";
-        }
         sf::Text hint("HELP: Press E/M/H for Easy,medium or hard.\nThen press 1 to 5 to continue...\n", font, 14);
         hint.setPosition(BOX_DIMENSION / 6, 90);
         hint.setFillColor(WHITE);
@@ -232,4 +272,11 @@ public:
     }
 
 private:
+    sf::Text levelInfo;
+    sf::Text otherInfo;
+    sf::Font font;
+    sf::Text scoreBoard;
+    std::vector<std::vector<Block>> blocks;
+    std::vector<std::vector<Block>> fruits;
+    unsigned int score=0;
 };
