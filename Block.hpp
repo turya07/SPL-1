@@ -36,9 +36,16 @@ public:
     {
         return block.getSize();
     }
+    void deleteIt()
+    {
+        block.setSize(sf::Vector2f(0, 0));
+        block.setFillColor(sf::Color::Transparent);
+        block.setOutlineColor(sf::Color::Transparent);
+    }
 
     void move(sf::Event ev, sf::Vector2f startBoundary, sf::Vector2f endBoundary, std::vector<std::vector<Block>> blocks)
     {
+        // need more optimization to avoid collision with blocks
         if (ev.key.code == UP && block.getPosition().y > startBoundary.x + height)
         {
             block.move(0, -speed);
@@ -75,8 +82,9 @@ public:
     {
         block.setOutlineThickness(thickness);
     }
-    void autoMove() {
-
+    void autoMove()
+    {
+        // I will do this later.
     }
 
 private:

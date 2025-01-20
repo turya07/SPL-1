@@ -1,6 +1,15 @@
-#include "header.hpp"
+// built-in c++ lib
+#include <iostream>
+#include <fstream>
+#include <vector>
 
-#define BOX_DIMENSION (int)1080
+// graphics lib
+#include <SFML/Graphics.hpp>
+
+// local lib
+#include "Block.hpp"
+
+#define BOX_DIMENSION (int)912
 #define BLOCK_SIZE (int)16
 #define TRANSPARENT sf::Color::Transparent
 #define WHITE sf::Color::White
@@ -19,33 +28,39 @@ public:
     }
     void initGame()
     {
-        this->window.create(sf::VideoMode(BOX_DIMENSION, BOX_DIMENSION), "Escape The Cope");
+        this->window.create(sf::VideoMode(BOX_DIMENSION, BOX_DIMENSION * 3 / 4), "Escape The Cop", sf::Style::Close | sf::Style::Titlebar);
         if (!font.loadFromFile("./fonts/firacode.ttf"))
         {
             std::cout << "Error loading font" << std::endl;
         }
     }
-    void playGame(std::string lv)
+
+    void playGame(std::string lv, std::string plyName)
     {
         initGame();
         levelInfo.setFont(font);
         levelInfo.setCharacterSize(16);
         levelInfo.setString("Level: " + lv + "\nCtrl+[SPACE] to Exit");
-        levelInfo.setFillColor(YELLOW);
-        levelInfo.setPosition(BOX_DIMENSION - 16 * 16, 28);
+        levelInfo.setFillColor(RED);
+        levelInfo.setPosition(BOX_DIMENSION - 16 * 16, 28 + 16);
 
+        playerInfo.setFont(font);
+        playerInfo.setCharacterSize(16);
+        playerInfo.setString("Player: " + plyName + "\n");
+        playerInfo.setFillColor(YELLOW);
+        playerInfo.setPosition(BOX_DIMENSION - 16 * 16, 28 * 2 + 16 * 2);
 
         otherInfo.setFont(font);
         otherInfo.setCharacterSize(16);
-        otherInfo.setString("RED: Theif\nBLUE & YELLOW: Police\nPINK: 1 point/Fruit\n");
+        otherInfo.setString("WHITE: Theif\nRED & YELLOW: Police\nPINK: 1 point/Fruit\n");
         otherInfo.setFillColor(WHITE);
-        otherInfo.setPosition(BOX_DIMENSION - 16 * 16, 28*3+14);
+        otherInfo.setPosition(BOX_DIMENSION - 16 * 16, 28 * 3 + 16 * 2);
 
         scoreBoard.setFont(font);
         scoreBoard.setCharacterSize(14);
         scoreBoard.setString("Score: 00");
         scoreBoard.setFillColor(GREEN);
-        scoreBoard.setPosition(BOX_DIMENSION - 16 * 16, 28-16);
+        scoreBoard.setPosition(BOX_DIMENSION - 16 * 16, 28);
 
         // read level from file
         std::string levelName = "./levels/" + lv + ".txt";
@@ -69,8 +84,8 @@ public:
                 Block f(BLOCK_SIZE / 2, (i + 1) * BLOCK_SIZE + 4, (blocks.size() + 1) * BLOCK_SIZE + 4);
                 if (line[i] == '#')
                 {
-                    b.setColor(WHITE);
-                    b.setOutlineColor(TRANSPARENT);
+                    b.setColor(sf::Color(20, 80, 170, 255));
+                    b.setOutlineColor(BLACK);
                 }
                 else
                 {
@@ -92,12 +107,12 @@ public:
         Block theif(BLOCK_SIZE, BLOCK_SIZE * 3, BLOCK_SIZE * 3);
 
         theif.setOutlineColor(TRANSPARENT);
-        theif.setColor(RED);
+        theif.setColor(WHITE);
 
         // polic
         Block police1(BLOCK_SIZE, BLOCK_SIZE * 9, BLOCK_SIZE * 3);
         Block police2(BLOCK_SIZE, BLOCK_SIZE * 6, BLOCK_SIZE * 3);
-        police1.setColor(BLUE);
+        police1.setColor(RED);
         police2.setColor(YELLOW);
 
         while (window.isOpen())
@@ -130,6 +145,13 @@ public:
             {
                 for (auto &&fxy : fx)
                 {
+                    if (fxy.getPosition().x - 4 == theif.getPosition().x && fxy.getPosition().y - 4 == theif.getPosition().y && fxy.getSize().x != 0 && fxy.getSize().y != 0)
+                    {
+                        score++;
+                        std::string pad = score < 10 ? "0" : "";
+                        scoreBoard.setString("Score: " + pad + std::to_string(score));
+                        fxy.deleteIt();
+                    }
                     fxy.draw(window);
                 }
             }
@@ -137,14 +159,74 @@ public:
             police1.draw(window);
             police2.draw(window);
             window.draw(levelInfo);
+            window.draw(playerInfo);
             window.draw(otherInfo);
             window.draw(scoreBoard);
-
 
             window.display();
         }
 
         return;
+    }
+
+    std::string getName()
+    {
+        initGame();
+        std::string defNam = "Enter Your Name: ";
+        sf::Text name(defNam, font, 20);
+        name.setPosition(BOX_DIMENSION / 6, 150);
+        Block frame(BOX_DIMENSION / 4, BOX_DIMENSION / 6 - 10, 150 - 10);
+        name.setFillColor(WHITE);
+        frame.setColor(TRANSPARENT);
+        frame.setOutlineColor(GREEN);
+        std::string playerName = "";
+        while (window.isOpen())
+        {
+            sf::Event event;
+            while (window.pollEvent(event))
+            {
+                if (event.type == sf::Event::Closed)
+                {
+                    if (playerName.length() < 3)
+                    {
+                        window.close();
+                        return "";
+                    }
+                }
+
+                if (event.type == sf::Event::KeyPressed)
+                {
+                    if (event.key.code == sf::Keyboard::Return)
+                    {
+                        window.close();
+                        if (playerName.length() < 3)
+                        {
+                            return "Player P1";
+                        }
+                        return playerName;
+                    }
+                    else if (event.key.code == sf::Keyboard::BackSpace && playerName.length() > 0)
+                    {
+                        playerName.pop_back();
+                    }
+                }
+                else if (event.type == sf::Event::TextEntered)
+                {
+                    if (event.text.unicode < 128)
+                    {
+                        playerName += static_cast<char>(event.text.unicode);
+                    }
+
+                    name.setString(defNam + "\n" + playerName);
+                }
+            }
+            window.clear();
+            window.draw(name);
+            frame.draw(window);
+            window.display();
+        }
+
+        return playerName;
     }
 
     std::string showMenu()
@@ -276,7 +358,8 @@ private:
     sf::Text otherInfo;
     sf::Font font;
     sf::Text scoreBoard;
+    sf::Text playerInfo;
     std::vector<std::vector<Block>> blocks;
     std::vector<std::vector<Block>> fruits;
-    unsigned int score=0;
+    unsigned int score = 0;
 };
