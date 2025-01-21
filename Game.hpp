@@ -8,7 +8,9 @@
 
 // local lib
 #include "Block.hpp"
-
+#include "TimeBox.hpp"
+#include "LoadImage.hpp"
+#include "Person.hpp"
 #define BOX_DIMENSION (int)912
 #define BLOCK_SIZE (int)16
 #define TRANSPARENT sf::Color::Transparent
@@ -23,12 +25,12 @@ class Game
 public:
     sf::RenderWindow window;
 
-    Game()
-    {
-    }
+    Game();
+
     void initGame()
     {
         this->window.create(sf::VideoMode(BOX_DIMENSION, BOX_DIMENSION * 3 / 4), "Escape The Cop", sf::Style::Close | sf::Style::Titlebar);
+        clock = sf::Clock();
         if (!font.loadFromFile("./fonts/firacode.ttf"))
         {
             std::cout << "Error loading font" << std::endl;
@@ -38,6 +40,28 @@ public:
     void playGame(std::string lv, std::string plyName)
     {
         initGame();
+
+        timebox = TimeBox(font, WHITE, BOX_DIMENSION);
+        std::string lv1 = "";
+        std::string lv2 = "";
+        int getSlash = 0;
+        for (int i = 0; i < lv.length(); i++)
+        {
+            if (lv[i] == '/')
+            {
+                getSlash = 1;
+            }
+            if (getSlash == 0)
+            {
+                lv1 += lv[i];
+            }
+            else if (getSlash == 1 && lv[i] != '/')
+            {
+                lv2 += lv[i];
+            }
+        }
+        player.assignPerson(plyName, 0, lv1, lv2);
+
         levelInfo.setFont(font);
         levelInfo.setCharacterSize(16);
         levelInfo.setString("Level: " + lv + "\nCtrl+[SPACE] to Exit");
@@ -115,6 +139,10 @@ public:
         police1.setColor(RED);
         police2.setColor(YELLOW);
 
+        std::cout << "Game Started" << std::endl;
+        std::cout << player.getPlayerName() << std::endl;
+        std::cout << player.getLevel() << std::endl;
+
         while (window.isOpen())
         {
             sf::Event event;
@@ -150,11 +178,13 @@ public:
                         score++;
                         std::string pad = score < 10 ? "0" : "";
                         scoreBoard.setString("Score: " + pad + std::to_string(score));
+                        player.updateScore(score);
                         fxy.deleteIt();
                     }
                     fxy.draw(window);
                 }
             }
+            time = (int)clock.getElapsedTime().asSeconds();
             theif.draw(window);
             police1.draw(window);
             police2.draw(window);
@@ -162,7 +192,8 @@ public:
             window.draw(playerInfo);
             window.draw(otherInfo);
             window.draw(scoreBoard);
-
+            timebox.draw(window, time);
+            texture.draw(window);
             window.display();
         }
 
@@ -354,12 +385,25 @@ public:
     }
 
 private:
+    unsigned int score = 0;
+    int time = 0;
+
     sf::Text levelInfo;
     sf::Text otherInfo;
     sf::Font font;
     sf::Text scoreBoard;
+    sf::Clock clock;
     sf::Text playerInfo;
+
     std::vector<std::vector<Block>> blocks;
     std::vector<std::vector<Block>> fruits;
-    unsigned int score = 0;
+
+    Person player;
+    TimeBox timebox;
+    LoadImage texture;
 };
+
+Game::Game()
+{
+    std::cout << "Initializing game..." << std::endl;
+}

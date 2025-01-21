@@ -1,3 +1,7 @@
+# Main Command:
 g++ -c main.cpp
 g++ -o game main.o -lsfml-graphics -lsfml-window -lsfml-system
 ./game
+
+# Tools: Test all c/cpp/header file lines
+./tools/count_lines ./Game.hpp ./Person.hpp ./TimeBox.hpp ./Block.hpp ./bfs.c ./main.cpp ./LoadImage.hpp
