@@ -12,7 +12,7 @@ public:
         timerBox.setFont(font);
         timerBox.setCharacterSize(16);
         timerBox.setFillColor(col);
-        timerBox.setPosition(dimension - 16 * 16, 16);
+        timerBox.setPosition(dimension - 16 * 16, 14);
     }
     void draw(sf::RenderWindow &window, int time)
     {

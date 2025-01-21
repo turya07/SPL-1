@@ -35,13 +35,13 @@ public:
         {
             std::cout << "Error loading font" << std::endl;
         }
+        title = sf::Text("Escape The Cop", font, 30);
     }
 
     void playGame(std::string lv, std::string plyName)
     {
         initGame();
 
-        timebox = TimeBox(font, WHITE, BOX_DIMENSION);
         std::string lv1 = "";
         std::string lv2 = "";
         int getSlash = 0;
@@ -61,30 +61,31 @@ public:
             }
         }
         player.assignPerson(plyName, 0, lv1, lv2);
+        timebox = TimeBox(font, WHITE, BOX_DIMENSION);
+
+        scoreBoard.setFont(font);
+        scoreBoard.setCharacterSize(16);
+        scoreBoard.setString("Score: 00");
+        scoreBoard.setFillColor(GREEN);
+        scoreBoard.setPosition(BOX_DIMENSION - 16 * 16, 14 + 16);
 
         levelInfo.setFont(font);
         levelInfo.setCharacterSize(16);
         levelInfo.setString("Level: " + lv + "\nCtrl+[SPACE] to Exit");
         levelInfo.setFillColor(RED);
-        levelInfo.setPosition(BOX_DIMENSION - 16 * 16, 28 + 16);
+        levelInfo.setPosition(BOX_DIMENSION - 16 * 16, 14 + 16 * 2);
 
         playerInfo.setFont(font);
         playerInfo.setCharacterSize(16);
-        playerInfo.setString("Player: " + plyName + "\n");
+        playerInfo.setString("Player: " + plyName);
         playerInfo.setFillColor(YELLOW);
-        playerInfo.setPosition(BOX_DIMENSION - 16 * 16, 28 * 2 + 16 * 2);
+        playerInfo.setPosition(BOX_DIMENSION - 16 * 16, 14 + 16 * 4);
 
         otherInfo.setFont(font);
         otherInfo.setCharacterSize(16);
         otherInfo.setString("WHITE: Theif\nRED & YELLOW: Police\nPINK: 1 point/Fruit\n");
         otherInfo.setFillColor(WHITE);
-        otherInfo.setPosition(BOX_DIMENSION - 16 * 16, 28 * 3 + 16 * 2);
-
-        scoreBoard.setFont(font);
-        scoreBoard.setCharacterSize(14);
-        scoreBoard.setString("Score: 00");
-        scoreBoard.setFillColor(GREEN);
-        scoreBoard.setPosition(BOX_DIMENSION - 16 * 16, 28);
+        otherInfo.setPosition(BOX_DIMENSION - 16 * 16, 14 + 16 * 5);
 
         // read level from file
         std::string levelName = "./levels/" + lv + ".txt";
@@ -104,8 +105,8 @@ public:
 
             for (int i = 0; i < line.size(); i++)
             {
-                Block b(BLOCK_SIZE, (i + 1) * BLOCK_SIZE, (blocks.size() + 1) * BLOCK_SIZE);
-                Block f(BLOCK_SIZE / 2, (i + 1) * BLOCK_SIZE + 4, (blocks.size() + 1) * BLOCK_SIZE + 4);
+                Block b(BLOCK_SIZE, (i + 1) * BLOCK_SIZE, (blocks.size() + 1) * BLOCK_SIZE + 100);
+                Block f(BLOCK_SIZE / 2, (i + 1) * BLOCK_SIZE + 4, (blocks.size() + 1) * BLOCK_SIZE + 4 + 100);
                 if (line[i] == '#')
                 {
                     b.setColor(sf::Color(20, 80, 170, 255));
@@ -128,14 +129,14 @@ public:
             fruits.push_back(fruitRow);
         }
 
-        Block theif(BLOCK_SIZE, BLOCK_SIZE * 3, BLOCK_SIZE * 3);
+        Block theif(BLOCK_SIZE, BLOCK_SIZE * 3, BLOCK_SIZE * 3 + 100);
 
         theif.setOutlineColor(TRANSPARENT);
         theif.setColor(WHITE);
 
         // polic
-        Block police1(BLOCK_SIZE, BLOCK_SIZE * 9, BLOCK_SIZE * 3);
-        Block police2(BLOCK_SIZE, BLOCK_SIZE * 6, BLOCK_SIZE * 3);
+        Block police1(BLOCK_SIZE, BLOCK_SIZE * 9, BLOCK_SIZE * 3 + 100);
+        Block police2(BLOCK_SIZE, BLOCK_SIZE * 6, BLOCK_SIZE * 3 + 100);
         police1.setColor(RED);
         police2.setColor(YELLOW);
 
@@ -185,6 +186,8 @@ public:
                 }
             }
             time = (int)clock.getElapsedTime().asSeconds();
+
+            window.draw(title);
             theif.draw(window);
             police1.draw(window);
             police2.draw(window);
@@ -253,6 +256,8 @@ public:
             }
             window.clear();
             window.draw(name);
+            window.draw(title);
+
             frame.draw(window);
             window.display();
         }
@@ -263,11 +268,13 @@ public:
     std::string showMenu()
     {
         initGame();
-        sf::Text hint("HELP: Press E/M/H for Easy,medium or hard.\nThen press 1 to 5 to continue...\n", font, 14);
+        sf::Text hint("HELP: Press E/M/H for Easy,medium or hard.\n      Then press 1 to 5 to Select Level Number\n", font, 14);
         hint.setPosition(BOX_DIMENSION / 6, 90);
         hint.setFillColor(WHITE);
-        sf::Text title("Escape The Cop", font, 30);
-        title.setPosition(BOX_DIMENSION / 6, 50);
+
+        sf::Text status("", font, 16);
+        status.setPosition(BOX_DIMENSION / 6, 124);
+        status.setFillColor(BLUE);
 
         sf::Text easy("Easy", font, 20);
         easy.setPosition(BOX_DIMENSION / 6, 150);
@@ -283,9 +290,9 @@ public:
         hard.setFillColor(sf::Color::Red);
 
         std::vector<sf::Text> levels;
-        for (int i = 1; i <= 5; ++i)
+        for (int i = 0; i <= 4; ++i)
         {
-            sf::Text level(std::to_string(i), font, 20);
+            sf::Text level(std::to_string(i + 1), font, 20);
             level.setPosition(BOX_DIMENSION / 6 + 20 * i, 280);
             level.setOutlineColor(WHITE);
             levels.push_back(level);
@@ -328,10 +335,7 @@ public:
                             lv.setFillColor(sf::Color::Red);
                         }
                     }
-                    // window.draw(hint);
-                    // window.draw(easy);
-                    // window.draw(medium);
-                    // window.draw(hard);
+                    status.setString("Selected Level: " + selectedLevel.substr(0, selectedLevel.length() - 1));
 
                     for (int i = 0; i < levels.size(); ++i)
                     {
@@ -367,6 +371,7 @@ public:
             window.clear();
             window.draw(title);
             window.draw(hint);
+            window.draw(status);
             window.draw(easy);
             window.draw(medium);
             window.draw(hard);
@@ -388,9 +393,10 @@ private:
     unsigned int score = 0;
     int time = 0;
 
+    sf::Font font;
+    sf::Text title;
     sf::Text levelInfo;
     sf::Text otherInfo;
-    sf::Font font;
     sf::Text scoreBoard;
     sf::Clock clock;
     sf::Text playerInfo;
