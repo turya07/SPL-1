@@ -11,15 +11,63 @@
 #include "TimeBox.hpp"
 #include "LoadImage.hpp"
 #include "Person.hpp"
-#define BOX_DIMENSION (int)912
-#define BLOCK_SIZE (int)16
+
+// CONST COLOR
 #define TRANSPARENT sf::Color::Transparent
 #define WHITE sf::Color::White
 #define BLACK sf::Color::Black
 #define RED sf::Color::Red
 #define BLUE sf::Color::Blue
+#define CYAN sf::Color::Cyan
 #define YELLOW sf::Color::Yellow
 #define GREEN sf::Color::Green
+
+// CONST SIZE
+#define BOX_DIMENSION (int)912
+#define BLOCK_SIZE (int)16
+#define GAP (int)20
+
+// take alphabet and numeric key and return the character
+char keyCodeToAlpha(sf::Event::KeyEvent key)
+{
+    if (key.code >= sf::Keyboard::A && key.code <= sf::Keyboard::Z)
+    {
+        return key.code + 65;
+    }
+    else if (key.code >= sf::Keyboard::Num0 && key.code <= sf::Keyboard::Num9)
+    {
+        return key.code + 22;
+    }
+    return ' ';
+}
+
+// SAVE data into file
+bool saveDataIntoFile(std::string &sname, std::string &sage)
+{
+    std::ofstream file(sname + "data.txt");
+    if (file.is_open())
+    {
+        // trim leading and trailing spaces
+        sname.erase(0, sname.find_first_not_of(" "));
+        sname.erase(sname.find_last_not_of(" ") + 1);
+        sage.erase(0, sage.find_first_not_of(" "));
+        sage.erase(sage.find_last_not_of(" ") + 1);
+
+        // check if age is a number
+        if (sage.find_first_not_of("0123456789") != std::string::npos)
+        {
+            return false;
+        }
+        else if (sname.length() == 0 || sage.length() == 0)
+        {
+            return false;
+        }
+        file << sname << "," << sage << std::endl;
+        file.close();
+        return true;
+    }
+    return false;
+}
 class Game
 {
 public:
@@ -31,7 +79,7 @@ public:
     {
         this->window.create(sf::VideoMode(BOX_DIMENSION, BOX_DIMENSION * 3 / 4), "Escape The Cop", sf::Style::Close | sf::Style::Titlebar);
         clock = sf::Clock();
-        if (!font.loadFromFile("./fonts/firacode.ttf"))
+        if (!font.loadFromFile("./fonts/exv.ttf"))
         {
             std::cout << "Error loading font" << std::endl;
         }
@@ -61,31 +109,31 @@ public:
             }
         }
         player.assignPerson(plyName, 0, lv1, lv2);
-        timebox = TimeBox(font, WHITE, BOX_DIMENSION);
+        timebox = TimeBox(font, WHITE, BOX_DIMENSION, GAP);
 
         scoreBoard.setFont(font);
         scoreBoard.setCharacterSize(16);
         scoreBoard.setString("Score: 00");
         scoreBoard.setFillColor(GREEN);
-        scoreBoard.setPosition(BOX_DIMENSION - 16 * 16, 14 + 16);
-
-        levelInfo.setFont(font);
-        levelInfo.setCharacterSize(16);
-        levelInfo.setString("Level: " + lv + "\nCtrl+[SPACE] to Exit");
-        levelInfo.setFillColor(RED);
-        levelInfo.setPosition(BOX_DIMENSION - 16 * 16, 14 + 16 * 2);
+        scoreBoard.setPosition(BOX_DIMENSION - 16 * 16, GAP * 2);
 
         playerInfo.setFont(font);
         playerInfo.setCharacterSize(16);
         playerInfo.setString("Player: " + plyName);
         playerInfo.setFillColor(YELLOW);
-        playerInfo.setPosition(BOX_DIMENSION - 16 * 16, 14 + 16 * 4);
+        playerInfo.setPosition(BOX_DIMENSION - 16 * 16, GAP * 3);
 
         otherInfo.setFont(font);
         otherInfo.setCharacterSize(16);
         otherInfo.setString("WHITE: Theif\nRED & YELLOW: Police\nPINK: 1 point/Fruit\n");
         otherInfo.setFillColor(WHITE);
-        otherInfo.setPosition(BOX_DIMENSION - 16 * 16, 14 + 16 * 5);
+        otherInfo.setPosition(BOX_DIMENSION - 16 * 16, GAP * 4);
+
+        levelInfo.setFont(font);
+        levelInfo.setCharacterSize(16);
+        levelInfo.setString("Level: " + lv + "\nCtrl+[SPACE] to Exit");
+        levelInfo.setFillColor(RED);
+        levelInfo.setPosition(BOX_DIMENSION - 16 * 16, GAP * 7);
 
         // read level from file
         std::string levelName = "./levels/" + lv + ".txt";
@@ -208,11 +256,13 @@ public:
         initGame();
         std::string defNam = "Enter Your Name: ";
         sf::Text name(defNam, font, 20);
+        sf::Text info("Press Enter to continue\n", font, 16);
         name.setPosition(BOX_DIMENSION / 6, 150);
-        Block frame(BOX_DIMENSION / 4, BOX_DIMENSION / 6 - 10, 150 - 10);
         name.setFillColor(WHITE);
-        frame.setColor(TRANSPARENT);
-        frame.setOutlineColor(GREEN);
+
+        info.setPosition(BOX_DIMENSION / 6, 130);
+        info.setFillColor(WHITE);
+
         std::string playerName = "";
         while (window.isOpen())
         {
@@ -228,37 +278,45 @@ public:
                     }
                 }
 
-                if (event.type == sf::Event::KeyPressed)
+                else if (event.type == sf::Event::KeyPressed)
                 {
-                    if (event.key.code == sf::Keyboard::Return)
+
+                    if (event.key.code == sf::Keyboard::Escape)
                     {
                         window.close();
-                        if (playerName.length() < 3)
-                        {
-                            return "Player P1";
-                        }
-                        return playerName;
-                    }
-                    else if (event.key.code == sf::Keyboard::BackSpace && playerName.length() > 0)
-                    {
-                        playerName.pop_back();
-                    }
-                }
-                else if (event.type == sf::Event::TextEntered)
-                {
-                    if (event.text.unicode < 128)
-                    {
-                        playerName += static_cast<char>(event.text.unicode);
                     }
 
-                    name.setString(defNam + "\n" + playerName);
+                    else if (event.key.code == sf::Keyboard::BackSpace)
+                    {
+                        if (playerName.size() > 0)
+                        {
+                            playerName.pop_back();
+                        }
+                    }
+                    else if (event.key.code == sf::Keyboard::Return)
+                    {
+                        if (playerName.length() < 3)
+                        {
+                            info.setString("Name must be at least 3 characters\n");
+                        }
+                        else
+                        {
+                            window.close();
+                        }
+                    }
+                    else
+                    {
+                        playerName += keyCodeToAlpha(event.key);
+                    }
                 }
             }
+
+            name.setString(defNam + " " + playerName + "_");
+
             window.clear();
             window.draw(name);
             window.draw(title);
-
-            frame.draw(window);
+            window.draw(info);
             window.display();
         }
 
@@ -268,22 +326,22 @@ public:
     std::string showMenu()
     {
         initGame();
-        sf::Text hint("HELP: Press E/M/H for Easy,medium or hard.\n      Then press 1 to 5 to Select Level Number\n", font, 14);
-        hint.setPosition(BOX_DIMENSION / 6, 90);
+        sf::Text hint("HELP: Press E/M/H for Easy,medium or hard.\n      Then press 1 to 5 to Select Level Number\n      The color in number indicates for which type of levels are you choosing a level?\n      Press CTRL+W to view HIGH SCORE.", font, 14);
+        hint.setPosition(BOX_DIMENSION / 6, GAP * 5);
         hint.setFillColor(WHITE);
 
-        sf::Text status("", font, 16);
-        status.setPosition(BOX_DIMENSION / 6, 124);
-        status.setFillColor(BLUE);
-
         sf::Text easy("Easy", font, 20);
-        easy.setPosition(BOX_DIMENSION / 6, 150);
+        easy.setPosition(BOX_DIMENSION / 6, GAP * 7.5 + 14 * 4);
 
         sf::Text medium("Medium", font, 20);
-        medium.setPosition(BOX_DIMENSION / 6, 200);
+        medium.setPosition(BOX_DIMENSION / 6, GAP * 9 + 14 * 4);
 
         sf::Text hard("Hard", font, 20);
-        hard.setPosition(BOX_DIMENSION / 6, 250);
+        hard.setPosition(BOX_DIMENSION / 6, GAP * 10.5 + 14 * 4);
+
+        sf::Text status("", font, 18);
+        status.setPosition(BOX_DIMENSION / 6, GAP * 12 + 14 * 4);
+        status.setFillColor(CYAN);
 
         easy.setFillColor(sf::Color::Green);
         medium.setFillColor(sf::Color::Yellow);
@@ -293,7 +351,7 @@ public:
         for (int i = 0; i <= 4; ++i)
         {
             sf::Text level(std::to_string(i + 1), font, 20);
-            level.setPosition(BOX_DIMENSION / 6 + 20 * i, 280);
+            level.setPosition(BOX_DIMENSION / 6 + 20 * i, easy.getPosition().y - 20);
             level.setOutlineColor(WHITE);
             levels.push_back(level);
         }
@@ -310,6 +368,37 @@ public:
 
                 if (event.type == sf::Event::KeyPressed)
                 {
+                    if (event.key.code == sf::Keyboard::W && event.key.control == true)
+                    {
+
+                        // read scores from score/data.csv where each line has name,score,time_in_seconds by semicolon separated
+                        std::ifstream scoreFile("scores/data.csv");
+                        if (!scoreFile.is_open())
+                        {
+                            std::cout << "Error opening score file" << std::endl;
+                        }
+                        else
+                        {
+                            std::string scoreLine;
+                            std::string scoreData = "High Scores:\n";
+                            while (std::getline(scoreFile, scoreLine))
+                            {
+                                std::string name,
+                                    score,
+                                    time;
+
+                                name = scoreLine.substr(0, scoreLine.find(";"));
+                                scoreLine.erase(0, scoreLine.find(";") + 1);
+                                score = scoreLine.substr(0, scoreLine.find(";"));
+                                scoreLine.erase(0, scoreLine.find(";") + 1);
+                                time = scoreLine;
+                                scoreData += name + "\t" + score + "\t" + time + "s\n";
+                            }
+                            std::cout << scoreData << std::endl;
+                            scoreFile.close();
+                            status.setString("Selected Level: " + selectedLevel.substr(0, selectedLevel.length() - 1) + "\n" + scoreData);
+                        }
+                    }
 
                     if (event.key.code == sf::Keyboard::E)
                     {
@@ -335,7 +424,6 @@ public:
                             lv.setFillColor(sf::Color::Red);
                         }
                     }
-                    status.setString("Selected Level: " + selectedLevel.substr(0, selectedLevel.length() - 1));
 
                     for (int i = 0; i < levels.size(); ++i)
                     {
@@ -403,6 +491,8 @@ private:
 
     std::vector<std::vector<Block>> blocks;
     std::vector<std::vector<Block>> fruits;
+
+    bool isShowScoreBoard = false;
 
     Person player;
     TimeBox timebox;
