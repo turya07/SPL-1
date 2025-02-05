@@ -6,12 +6,12 @@ int main()
     std::string levelName;
     std::string playerName;
     playerName = game->getName();
-    if(playerName == "")
+    if (playerName == "")
     {
         return 0;
     }
     levelName = game->showMenu();
-    
+
     std::cout << "Level Name: " << levelName << std::endl;
 
     game->playGame(levelName, playerName);

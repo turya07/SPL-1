@@ -92,6 +92,10 @@ public:
 
         std::string lv1 = "";
         std::string lv2 = "";
+        // police
+        Block police1(BLOCK_SIZE, BLOCK_SIZE * 9, BLOCK_SIZE * 3 + 100);
+        Block police2(BLOCK_SIZE, BLOCK_SIZE * 6, BLOCK_SIZE * 3 + 100);
+
         int getSlash = 0;
         for (int i = 0; i < lv.length(); i++)
         {
@@ -145,16 +149,20 @@ public:
         }
         std::string line;
         int numOfSpace = 0;
-
+        int idx, idy;
+        idx = idy = -1;
         while (std::getline(file, line))
         {
             std::vector<Block> row;
             std::vector<Block> fruitRow;
 
+            idx++;
+
             for (int i = 0; i < line.size(); i++)
             {
-                Block b(BLOCK_SIZE, (i + 1) * BLOCK_SIZE, (blocks.size() + 1) * BLOCK_SIZE + 100);
-                Block f(BLOCK_SIZE / 2, (i + 1) * BLOCK_SIZE + 4, (blocks.size() + 1) * BLOCK_SIZE + 4 + 100);
+                ID id = {idx, i};
+                Block b(BLOCK_SIZE, (i + 1) * BLOCK_SIZE, (blocks.size() + 1) * BLOCK_SIZE + 100, id);             // single BLOCK
+                Block f(BLOCK_SIZE / 2, (i + 1) * BLOCK_SIZE + 4, (blocks.size() + 1) * BLOCK_SIZE + 4 + 100, id); // single FRUIT
                 if (line[i] == '#')
                 {
                     b.setColor(sf::Color(20, 80, 170, 255));
@@ -162,13 +170,24 @@ public:
                 }
                 else
                 {
-                    b.setColor(TRANSPARENT);
-                    b.setOutlineColor(TRANSPARENT);
-                    f.setColor(sf::Color::Magenta);
-                    numOfSpace++;
-                    if (numOfSpace % 3 == 0)
+                    switch (line[i])
                     {
-                        fruitRow.push_back(f);
+                    case '1':
+                        police1.setPosition(b.getPosition());
+                        break;
+                    case '2':
+                        police2.setPosition(b.getPosition());
+                        break;
+                    default:
+                        b.setColor(TRANSPARENT);
+                        b.setOutlineColor(TRANSPARENT);
+                        f.setColor(sf::Color::Magenta);
+                        numOfSpace++;
+                        if (numOfSpace % 3 == 0)
+                        {
+                            fruitRow.push_back(f);
+                        }
+                        break;
                     }
                 }
                 row.push_back(b);
@@ -182,9 +201,6 @@ public:
         theif.setOutlineColor(TRANSPARENT);
         theif.setColor(WHITE);
 
-        // polic
-        Block police1(BLOCK_SIZE, BLOCK_SIZE * 9, BLOCK_SIZE * 3 + 100);
-        Block police2(BLOCK_SIZE, BLOCK_SIZE * 6, BLOCK_SIZE * 3 + 100);
         police1.setColor(RED);
         police2.setColor(YELLOW);
 
