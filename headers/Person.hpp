@@ -1,6 +1,6 @@
 #include <iostream>
 #include <vector>
-
+#include <inttypes.h>
 #include <SFML/Graphics.hpp>
 class Level
 {
@@ -11,12 +11,22 @@ private:
 public:
     Level();
     void setLevel(std::string levelName, std::string levelNumber);
-    std::vector<std::string> getAll() { return {levelName, levelNumber}; }
+    int parseInt(std::string);
+    std::pair<std::string, int> getAll() { return {levelName, parseInt(levelNumber)}; }
     ~Level();
 };
 
 Level::Level()
 {
+}
+int Level::parseInt(std::string str)
+{
+    int num = 0;
+    for (int i = 0; i < str.size(); i++)
+    {
+        num = num * 10 + (str[i] - '0');
+    }
+    return num;
 }
 void Level::setLevel(std::string levelName, std::string levelNumber)
 {
@@ -33,8 +43,15 @@ public:
     Person();
     void assignPerson(std::string playerName, unsigned int score, std::string levelName, std::string levelNumber);
     void updateScore(unsigned int score);
-    std::string getPlayerName() { return playerName; }
-    std::string getLevel() { return level.getAll()[0] + " " + level.getAll()[1]; }
+    int getScore() { return score; }
+    std::string getPlayerName()
+    {
+        return playerName;
+    }
+    std::pair<std::string, int> getLevel()
+    {
+        return level.getAll();
+    }
     ~Person();
 
 private:

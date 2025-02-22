@@ -42,27 +42,26 @@ char keyCodeToAlpha(sf::Event::KeyEvent key)
 }
 
 // SAVE data into file
-bool saveDataIntoFile(std::string &sname, std::string &sage)
+bool saveDataIntoFile(std::string name, std::string score, std::string time)
 {
-    std::ofstream file(sname + "data.txt");
+    std::ofstream file("scores/data.csv", std::ios::app);
     if (file.is_open())
     {
         // trim leading and trailing spaces
-        sname.erase(0, sname.find_first_not_of(" "));
-        sname.erase(sname.find_last_not_of(" ") + 1);
-        sage.erase(0, sage.find_first_not_of(" "));
-        sage.erase(sage.find_last_not_of(" ") + 1);
+        name.erase(0, name.find_first_not_of(" "));
+        name.erase(name.find_last_not_of(" ") + 1);
 
         // check if age is a number
-        if (sage.find_first_not_of("0123456789") != std::string::npos)
+        if (score.find_first_not_of("0123456789") != std::string::npos)
         {
             return false;
         }
-        else if (sname.length() == 0 || sage.length() == 0)
+        else if (name.length() == 0 || score.length() == 0 || time.length() == 0)
         {
             return false;
         }
-        file << sname << "," << sage << std::endl;
+        file << std::endl
+             << name << ";" << score << ";" << time;
         file.close();
         return true;
     }
@@ -89,6 +88,7 @@ public:
     void playGame(std::string lv, std::string plyName)
     {
         initGame();
+        texture = LoadImage();
 
         std::string lv1 = "";
         std::string lv2 = "";
@@ -123,7 +123,7 @@ public:
 
         playerInfo.setFont(font);
         playerInfo.setCharacterSize(16);
-        playerInfo.setString("Player: " + plyName);
+        playerInfo.setString("Player: " + player.getPlayerName());
         playerInfo.setFillColor(YELLOW);
         playerInfo.setPosition(BOX_DIMENSION - 16 * 16, GAP * 3);
 
@@ -206,7 +206,7 @@ public:
 
         std::cout << "Game Started" << std::endl;
         std::cout << player.getPlayerName() << std::endl;
-        std::cout << player.getLevel() << std::endl;
+        std::cout << player.getLevel().first << " -- " << player.getLevel().second << std::endl;
 
         while (window.isOpen())
         {
@@ -219,6 +219,10 @@ public:
                     window.close();
                 if (event.type == sf::Event::KeyPressed && event.key.code == sf::Keyboard::Space && event.key.control == true)
                 {
+                    this->scoreBoard.setString("Score: " + std::to_string(score) + ", Saving Data...");
+
+                    // add score info to file in this sequence: NAME;SCORE;TIME
+                    saveDataIntoFile(player.getPlayerName(), std::to_string(score), std::to_string(time));
                     window.close();
                     return;
                 }
@@ -494,7 +498,7 @@ public:
     }
 
 private:
-    unsigned int score = 0;
+    unsigned int score = 0; // SCORE Variable
     int time = 0;
 
     sf::Font font;
@@ -505,8 +509,8 @@ private:
     sf::Clock clock;
     sf::Text playerInfo;
 
-    std::vector<std::vector<Block>> blocks;
-    std::vector<std::vector<Block>> fruits;
+    std::vector<std::vector<Block>> blocks; // 2d matrix for WALL & GAPS
+    std::vector<std::vector<Block>> fruits; // fruits as SCORE
 
     bool isShowScoreBoard = false;
 
