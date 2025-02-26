@@ -54,19 +54,19 @@ User has to choose any level. Depending on the selected level, there will be som
 
 - Install build-essential for GCC & G++
 
-```
+```shell
 sudo apt install build-essential
 ```
 
 - install SFML
 
-```
+```bash
 sudo apt-get install libsfml-dev
 ```
 
 **If you encounter any problem to install any of the packages, then first type the code below and then try the process again.**
 
-```
+```bash
 sudo apt update && sudo apt-get update
 ```
 </div>
@@ -74,7 +74,7 @@ sudo apt update && sudo apt-get update
 ## Usage
 <div>
 
-- To compile c++ file:
+<!-- - To compile c++ file:
 
 ```
 g++ -c main.cpp
@@ -90,12 +90,12 @@ g++ -o game main.o -lsfml-graphics -lsfml-window -lsfml-system
 
 ```
 ./game
-```
-
-## Tools: Test all c/cpp/header files number of lines
+``` -->
+- Simply Run `sh install.sh` command in linux terminal.
+<!-- ## Tools: Test all c/cpp/header files number of lines
 ```
 ./tools/count_lines ./Game.hpp ./Person.hpp ./TimeBox.hpp ./Block.hpp ./bfs.c ./main.cpp ./LoadImage.hpp
-```
+``` -->
 </div>
 
 ## Acknowledgement
