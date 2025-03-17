@@ -42,16 +42,32 @@ char keyCodeToAlpha(sf::Event::KeyEvent key)
 }
 
 // SAVE data into file
-bool saveDataIntoFile(std::string name, std::string score, std::string time)
+bool saveDataIntoFile(std::string name, std::string score, std::string time, std::string gameType)
 {
-    std::ofstream file("scores/data.csv", std::ios::app);
+    std::cout << gameType << std::endl;
+    std::string filePath = "scores/" + gameType + "/data.csv";
+    std::ofstream file(filePath, std::ios::app);
+    if (!file.is_open())
+    {
+        // may be the file is on available, so create the file in that directory
+        std::cout << "Creating new file" << std::endl;
+        std::ofstream newFile(filePath);
+        newFile.close();
+        file.open(filePath, std::ios::app);
+        if (!file.is_open())
+        {
+            std::cout << "Failed to create new file" << std::endl;
+
+            return false;
+        }
+    }; // just escape the warning and re-conditioning
     if (file.is_open())
     {
         // trim leading and trailing spaces
         name.erase(0, name.find_first_not_of(" "));
         name.erase(name.find_last_not_of(" ") + 1);
 
-        // check if age is a number
+        // check if score is a number
         if (score.find_first_not_of("0123456789") != std::string::npos)
         {
             return false;
@@ -82,7 +98,8 @@ public:
         {
             std::cout << "Error loading font" << std::endl;
         }
-        title = sf::Text("Escape The Cop", font, 30);
+        title.setPosition(BOX_DIMENSION / 2 - title.getLocalBounds().width / 2, GAP);
+        title.setFillColor(WHITE);
     }
 
     void playGame(std::string lv, std::string plyName)
@@ -163,6 +180,7 @@ public:
                 ID id = {idx, i};
                 Block b(BLOCK_SIZE, (i + 1) * BLOCK_SIZE, (blocks.size() + 1) * BLOCK_SIZE + 100, id);             // single BLOCK
                 Block f(BLOCK_SIZE / 2, (i + 1) * BLOCK_SIZE + 4, (blocks.size() + 1) * BLOCK_SIZE + 4 + 100, id); // single FRUIT
+                f.setColor(sf::Color::Magenta);
                 if (line[i] == '#')
                 {
                     b.setColor(sf::Color(20, 80, 170, 255));
@@ -178,15 +196,15 @@ public:
                     case '2':
                         police2.setPosition(b.getPosition());
                         break;
+                    case '*':
+                        fruitRow.push_back(f);
+                        totalFruits++;
+                        b.setColor(TRANSPARENT);
+                        b.setOutlineColor(TRANSPARENT);
+                        break;
                     default:
                         b.setColor(TRANSPARENT);
                         b.setOutlineColor(TRANSPARENT);
-                        f.setColor(sf::Color::Magenta);
-                        numOfSpace++;
-                        if (numOfSpace % 3 == 0)
-                        {
-                            fruitRow.push_back(f);
-                        }
                         break;
                     }
                 }
@@ -222,7 +240,7 @@ public:
                     this->scoreBoard.setString("Score: " + std::to_string(score) + ", Saving Data...");
 
                     // add score info to file in this sequence: NAME;SCORE;TIME
-                    saveDataIntoFile(player.getPlayerName(), std::to_string(score), std::to_string(time));
+                    saveDataIntoFile(player.getPlayerName(), std::to_string(score), std::to_string(time), player.getLevel().first);
                     window.close();
                     return;
                 }
@@ -231,6 +249,30 @@ public:
             }
 
             window.clear();
+            if (player.getScore() == totalFruits)
+            {
+                sf::Text congrats("Congratulations!", font, 36);
+                sf::Text exitButton("Press Ctrl+Space to Exit", font, 16);
+                congrats.setFillColor(GREEN);
+                congrats.setPosition(BOX_DIMENSION / 2 - congrats.getLocalBounds().width / 2, BOX_DIMENSION / 2 - 50);
+
+                exitButton.setFillColor(YELLOW);
+                exitButton.setPosition(BOX_DIMENSION / 2 - exitButton.getLocalBounds().width / 2, BOX_DIMENSION / 2);
+                window.draw(congrats);
+                window.draw(exitButton);
+
+                if (sf::Keyboard::isKeyPressed(sf::Keyboard::Space) && sf::Keyboard::isKeyPressed(sf::Keyboard::LControl))
+                {
+                    this->scoreBoard.setString("Score: " + std::to_string(score) + ", Saving Data...");
+                    saveDataIntoFile(player.getPlayerName(), std::to_string(score), std::to_string(time), player.getLevel().first);
+                    std::cout << "Exiting..." << std::endl;
+
+                    window.close();
+                    return;
+                }
+                window.display();
+                continue;
+            }
             for (auto &&blockx : blocks)
             {
                 for (auto &&bxy : blockx)
@@ -360,8 +402,8 @@ public:
         hard.setPosition(BOX_DIMENSION / 6, GAP * 10.5 + 14 * 4);
 
         sf::Text status("", font, 18);
-        status.setPosition(BOX_DIMENSION / 6, GAP * 12 + 14 * 4);
-        status.setFillColor(CYAN);
+        status.setPosition(BOX_DIMENSION / 2, GAP * 10 + 14 * 4);
+        status.setFillColor(GREEN);
 
         easy.setFillColor(sf::Color::Green);
         medium.setFillColor(sf::Color::Yellow);
@@ -383,6 +425,7 @@ public:
             sf::Event event;
             while (window.pollEvent(event))
             {
+                player.assignPerson(player.getPlayerName(), 0, selectedLevel.substr(0, selectedLevel.length() - 1), "1");
                 if (event.type == sf::Event::Closed)
                     window.close();
 
@@ -392,7 +435,7 @@ public:
                     {
 
                         // read scores from score/data.csv where each line has name,score,time_in_seconds by semicolon separated
-                        std::ifstream scoreFile("scores/data.csv");
+                        std::ifstream scoreFile("scores/" + player.getLevel().first + "/data.csv");
                         if (!scoreFile.is_open())
                         {
                             std::cout << "Error opening score file" << std::endl;
@@ -400,7 +443,7 @@ public:
                         else
                         {
                             std::string scoreLine;
-                            std::string scoreData = "High Scores:\n";
+                            std::string scoreData = "Table of Scores: [" + player.getLevel().first + "]\n";
                             while (std::getline(scoreFile, scoreLine))
                             {
                                 std::string name,
@@ -416,7 +459,7 @@ public:
                             }
                             std::cout << scoreData << std::endl;
                             scoreFile.close();
-                            status.setString("Selected Level: " + selectedLevel.substr(0, selectedLevel.length() - 1) + "\n" + scoreData);
+                            status.setString("\n" + scoreData);
                         }
                     }
 
@@ -500,9 +543,10 @@ public:
 private:
     unsigned int score = 0; // SCORE Variable
     int time = 0;
+    int totalFruits = 0;
 
     sf::Font font;
-    sf::Text title;
+    sf::Text title =  sf::Text("Escape The Cop", font, 30);
     sf::Text levelInfo;
     sf::Text otherInfo;
     sf::Text scoreBoard;

@@ -1,2 +1,5 @@
 *.o
 *.output
+*.out
+# escape IDE confige folders
+.vscode

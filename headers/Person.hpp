@@ -32,6 +32,7 @@ void Level::setLevel(std::string levelName, std::string levelNumber)
 {
     this->levelName = levelName;
     this->levelNumber = levelNumber;
+    std::cout << "Setting level to " << levelName << " " << levelNumber << std::endl;
 }
 Level::~Level()
 {
