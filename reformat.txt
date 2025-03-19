@@ -4,4 +4,5 @@ g++ -o game main.o -lsfml-graphics -lsfml-window -lsfml-system
 ./game
 
 # Tools: Test all c/cpp/header file lines
-./tools/count_lines ./Game.hpp ./Person.hpp ./TimeBox.hpp ./Block.hpp ./bfs.c ./main.cpp ./LoadImage.hpp
+#`cd header` to go to `header` directory
+../tools/count_lines ./LoadImage.hpp ./Person.hpp ./Game.hpp ./TimeBox.hpp ./Block.hpp ../main.cpp ../tools/calcScore.cpp ../tools/count_lines.cpp ../tools/list_files.cpp 
