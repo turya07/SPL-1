@@ -1,5 +1,6 @@
 #include <iostream>
 #include <vector>
+#include <filesystem>
 #include <algorithm>
 #include <iomanip>
 using namespace std;
@@ -7,18 +8,25 @@ using namespace std;
 // Function to calculate score from eatenFruits and elapsedTime
 int calculateScore(int eatenFruits, int elapsedTime)
 {
-    return eatenFruits * 1000 - elapsedTime; // Example scoring logic
+    return max(0, eatenFruits * 1000 - elapsedTime); // Example scoring logic
 }
 
-bool operator>(const pair<int, int> &a, const pair<int, int> &b)
+bool greaterScore(pair<int, int> a, pair<int, int> b)
 {
     return a.second > b.second;
 }
-
-int main()
+int main(const int argc, const char *const argv[])
 {
     vector<pair<int, int>> fruitTimePairs = {{6, 8}, {0, 15}, {47, 28}, {15, 95}};
     vector<pair<int, int>> scores;
+    ofstream file;
+    file.open(argv[1], ios::out);
+
+    if(!file.is_open())
+    {
+        cout << "no CSV file not found" << endl;
+        return 1;
+    }
 
     // Calculate scores and store in the scores vector
     for (int i = 0; i < fruitTimePairs.size(); i++)
@@ -29,7 +37,7 @@ int main()
     }
 
     // Sort scores in descending order
-    sort(scores.begin(), scores.end(), greater<pair<int, int>>());
+    sort(scores.begin(), scores.end(), greaterScore);
 
     // Print sorted scores
     for (auto score : scores)
