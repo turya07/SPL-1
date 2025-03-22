@@ -1,11 +1,8 @@
-#include <SFML/Graphics.hpp>
-
 class TimeBox
 {
 public:
     TimeBox()
     {
-        std::cout << "Default Timbox" << std::endl;
     }
     TimeBox(sf::Font &font, sf::Color col, unsigned int dimension, int y_axis)
     {

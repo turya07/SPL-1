@@ -1,6 +1,3 @@
-#include <SFML/Graphics.hpp>
-#include <vector>
-
 #define UP sf::Keyboard::W
 #define DOWN sf::Keyboard::S
 #define LEFT sf::Keyboard::A

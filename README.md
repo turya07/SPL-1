@@ -52,16 +52,10 @@ User has to choose any level. Depending on the selected level, there will be som
 ## Installation
 <div>
 
-- Install build-essential for GCC & G++
-
-```shell
-sudo apt install build-essential
-```
-
-- install SFML
+- Install GCC, G++ & SFML
 
 ```bash
-sudo apt-get install libsfml-dev
+sudo apt install gcc g++ make libsfml-dev
 ```
 
 **If you encounter any problem to install any of the packages, then first type the code below and then try the process again.**
@@ -74,28 +68,11 @@ sudo apt update && sudo apt-get update
 ## Usage
 <div>
 
-<!-- - To compile c++ file:
 
-```
-g++ -c main.cpp
-```
-
-- To create executable file:
-
-```
-g++ -o game main.o -lsfml-graphics -lsfml-window -lsfml-system
-```
-
-- To run the **END-USER** app/game:
-
-```
-./game
-``` -->
 - Simply Run `sh install.sh` command in linux terminal.
-<!-- ## Tools: Test all c/cpp/header files number of lines
-```
-./tools/count_lines ./Game.hpp ./Person.hpp ./TimeBox.hpp ./Block.hpp ./bfs.c ./main.cpp ./LoadImage.hpp
-``` -->
+
+- To check LOC in project, Run `sh check_lines.sh` command in linux terminal.
+
 </div>
 
 ## Acknowledgement
@@ -109,3 +86,4 @@ g++ -o game main.o -lsfml-graphics -lsfml-window -lsfml-system
 ## Contact
 
 - E-mail: <a href="mailto:bsse1507@iit.du.ac.bd">bsse1507@iit.du.ac.bd</a>
+- Phone: <u>+88-0154-0153-659</u>

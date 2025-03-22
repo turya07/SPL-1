@@ -15,14 +15,34 @@ int countLines(const std::string &filename)
     std::string line;
     while (std::getline(file, line))
     {
-        if(line.length() >0)
-        ++lines;
+        if (line.length() > 0)
+            ++lines;
     }
 
     file.close();
     return lines;
 }
-
+std::string optimizeFileName(std::string filename)
+{
+    std::string optimized = filename;
+    int pos = filename.find_last_of("/");
+    if (pos != std::string::npos)
+    {
+        optimized = filename.substr(pos + 1);
+    }
+    return optimized;
+}
+void optimizePadding(std::string &str, int len)
+{
+    int l = str.length();
+    if (l < len)
+    {
+        for (int i = 0; i < len - l; i++)
+        {
+            str += " ";
+        }
+    }
+}
 int main(int argc, char *argv[])
 {
     if (argc < 2)
@@ -38,14 +58,21 @@ int main(int argc, char *argv[])
 
         std::string filename = argv[i];
         int t = countLines(filename);
+        std::string leftCol = "Total lines in " + optimizeFileName(filename);
+        optimizePadding(leftCol, 39);
         if (t != -1)
         {
             totalLines += t;
-            std::cout << "Total lines in " << filename << ": " << t << std::endl;
+            std::cout << "\t" << i << ". " << leftCol << ":  " << t << std::endl;
         }
     }
-    std::cout << std::endl
-              << "Total Lines of C code in this project: " << totalLines << std::endl
+    std::cout << "=========================================================" << std::endl;
+    std::string leftCol = "Total Lines of C/C++ code";
+    optimizePadding(leftCol, 50);
+    std::cout << leftCol << ":  " << totalLines << std::endl;
+
+    std::cout << "============================X============================" << std::endl
               << std::endl;
+
     return 0;
 }
