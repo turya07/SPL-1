@@ -10,7 +10,6 @@ public:
     LoadImage(const std::string &imagePath, int playerId);
     void draw(sf::RenderWindow &);
     void move(sf::Vector2f);
-    void setPlayerSprite(int playerId);
     ~LoadImage();
 };
 LoadImage::LoadImage(){
@@ -22,16 +21,11 @@ LoadImage::LoadImage(const std::string &imagePath, int playerId) : playerId(play
         std::cerr << "Failed to Create Texture from Image" << std::endl;
     else
     {
+        sprite = sf::Sprite();
         sprite.setTexture(texture);
         sprite.setOrigin({0, 0});
         sprite.setScale(BLOCK_SIZE / texture.getSize().x, BLOCK_SIZE / texture.getSize().y);
     }
-}
-
-void LoadImage::setPlayerSprite(int playerId)
-{
-    this->playerId = playerId;
-    // Additional logic to set the sprite for player 1 or 2 can be added here
 }
 
 void LoadImage::move(sf::Vector2f pos)

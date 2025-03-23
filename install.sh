@@ -1,5 +1,5 @@
 cur_path=$pwd
-/usr/bin/g++ -o ./client/game.out ./client/main.cpp -lsfml-graphics -lsfml-window -lsfml-system -lsfml-network
+/usr/bin/g++ -o ./client/game.out ./client/main.cpp -lsfml-graphics -lsfml-window -lsfml-system -lsfml-network -lsfml-audio
 /usr/bin/make ./server/server
 /usr/bin/make ./server/client
 

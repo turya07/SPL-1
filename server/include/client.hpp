@@ -1,10 +1,6 @@
 #ifndef CLIENT_HPP
 #define CLIENT_HPP
 
-#include <SFML/Network.hpp>
-#include <iostream>
-#include <thread>
-
 class Client {
 public:
     Client() {}

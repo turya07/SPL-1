@@ -11,6 +11,7 @@
 #include <sstream>
 #include <iomanip>
 #include <cmath>
+#include <thread>
 
 // CONST COLOR
 #define TRANSPARENT sf::Color::Transparent
@@ -31,13 +32,12 @@
 
 // graphics lib
 #include <SFML/Graphics.hpp>
-
-// local lib
+#include <SFML/Network.hpp>
+#include <SFML/Audio.hpp>
+// local lib from client
 #include "Block.hpp"
 #include "Person.hpp"
 #include "TimeBox.hpp"
-
-// server lib
-#include "Server.hpp" 
+#include "Server.hpp" // server lib
 
 #endif // HEADER_HPP

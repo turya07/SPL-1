@@ -39,18 +39,19 @@ Level::~Level()
 // Person Class
 class Person
 {
-   
-  
+
 public:
     Person();
-    void assignPerson(std::string, unsigned int, unsigned int, std::string, std::string, std::string, sf::Font);
+    void assignPerson(std::string, unsigned int, std::string, std::string, std::string, sf::Font);
     void updateScore(unsigned int score);
     int getScore() { return score; }
-    void updateLevel(std::string  , std::string );
+    void updateLevel(std::string, std::string);
+    void deleteIt();
     void draw(sf::RenderWindow &window)
     {
+        // std::cout << "Drawing Player: " << playerInfo.getString().toAnsiString() << std::endl;
         sprite.draw(window);
-        window.draw(playerInfo);
+        // window.draw(playerInfo);
     }
 
     void move(sf::Vector2f pos)
@@ -84,13 +85,13 @@ Person::Person()
     level.setLevel("easy", "1");
     sprite = LoadImage();
 }
-void Person::assignPerson(std::string playerName, unsigned int playerId, unsigned int score, std::string levelName, std::string levelNumber, std::string spritePath, sf::Font font)
+void Person::assignPerson(std::string playerName, unsigned int playerId, std::string levelName, std::string levelNumber, std::string spritePath, sf::Font font)
 {
-    this->playerName = playerName;
+    this->playerName = playerName.length() > 0 ? playerName : "Player " + std::to_string(playerId);
     this->playerId = playerId;
-    this->score = score;
+    this->score = 0;
     this->level.setLevel(levelName, levelNumber);
-    this->sprite = LoadImage(spritePath, 1);
+    this->sprite = LoadImage(spritePath, (int)playerId);
 
     this->playerInfo = sf::Text("Player: " + playerName, font, 16);
     this->playerInfo.setFillColor(YELLOW);
@@ -103,6 +104,11 @@ void Person::updateScore(unsigned int score)
 void Person::updateLevel(std::string levelName, std::string levelNumber)
 {
     level.setLevel(levelName, levelNumber);
+}
+void Person::deleteIt()
+{
+    score = 0;
+    sprite.~LoadImage();
 }
 Person::~Person()
 {

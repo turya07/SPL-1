@@ -1,10 +1,6 @@
 #ifndef SERVER_HPP
 #define SERVER_HPP
 
-#include <SFML/Network.hpp>
-#include <iostream>
-#include <thread>
-
 class Server {
 public:
     Server(unsigned short port) {
