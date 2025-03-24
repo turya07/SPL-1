@@ -17,15 +17,15 @@ typedef struct ScoreBlock
 // Function to calculate score from eatenFruits and elapsedTime
 INT calculateScore(INT eatenFruits, INT elapsedTime)
 {
-    INT baseScore = eatenFruits * 100;
-    INT quickBonus = max(ZERO, 500 - elapsedTime);   // Bonus decreases as time increases
-    INT timePenalty = max(ZERO, elapsedTime - 1000); // Penalty starts after 10 seconds
+    INT baseScore = eatenFruits * 10000;
+    INT quickBonus = max(ZERO, 50000 - elapsedTime);   // Bonus decreases as time increases
+    INT timePenalty = max(ZERO, elapsedTime - 5000); // Penalty starts after 5 seconds
     double multiplier = 1.0;
     if (elapsedTime < 500) // If all fruits are eaten within 5 seconds
     {
         multiplier = 1.5;
     }
-    else if (elapsedTime < 1000) // If all fruits are eaten within 10 seconds
+    else if (elapsedTime < 10000) // If all fruits are eaten within 10 seconds
     {
         multiplier = 1.2;
     }
@@ -72,11 +72,12 @@ int main(const int argc, const char *const argv[])
         return 1;
     }
     vector<ScoreBlock> scores = readFile(argv[1]);
-
+    int laxLenghtName = 0;
     // Calculate scores and store in the scores vector
     for (auto &score : scores)
     {
         score.score = calculateScore(score.fruites, score.time);
+        laxLenghtName = max(laxLenghtName, (int)score.name.length());
     }
     // Sort scores in descending order
     sort(scores.begin(), scores.end(), greaterScore);
@@ -84,7 +85,7 @@ int main(const int argc, const char *const argv[])
     // Print sorted scores
     for (auto score : scores)
     {
-        cout << score.name << " : " << score.score << endl;
+        cout << score.name << setw(laxLenghtName - score.name.length() + 5) << " : " << score.score << "(" << score.fruites << ")" << "(" << score.time/1000 << ")" << endl;
     }
     cout << endl;
 

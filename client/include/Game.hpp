@@ -403,7 +403,7 @@ void Game::playGame(std::string lv, std::string plyName)
         }
         else
         {
-            time = (int64_t)clock.getElapsedTime().asMilliseconds()+lastTime;
+            time = (int64_t)clock.getElapsedTime().asMilliseconds() + lastTime;
         }
         window.display();
     }
@@ -529,11 +529,12 @@ std::string Game::showMenu()
     }
 
     std::string selectedLevel = "";
-    int selectedLevelIndex = -1;
+    int selectedLevelIndex = 1;
 
     while (window.isOpen())
     {
         sf::Event event;
+        std::string prevData = "";
         while (window.pollEvent(event))
         {
             if (event.type == sf::Event::Closed)
@@ -544,8 +545,22 @@ std::string Game::showMenu()
 
                 if (event.key.code == sf::Keyboard::W && event.key.control == true)
                 {
-
+                    if (!isSoloMode && !isPlayerOne)
+                    {
+                        std::string lvName = "";
+                        prevData = selectedLevel;
+                        selectedLevel = client->getReceivedData();
+                        if (selectedLevel != "exit")
+                        {
+                            lvName = selectedLevel.substr(0, selectedLevel.length() - 1);
+                            selectedLevelIndex = std::stoi(selectedLevel.substr(selectedLevel.length() - 1, selectedLevel.length()));
+                            selectedLevel = lvName;
+                        }
+                    }
                     // read scores from score/data.csv where each line has name,score,time_in_seconds by semicolon separated
+                    player1.updateLevel(selectedLevel.substr(0, selectedLevel.length() - 1), std::to_string(selectedLevelIndex));
+                    if (!isSoloMode && !isPlayerOne)
+                        player2.updateLevel(selectedLevel.substr(0, selectedLevel.length() - 1), std::to_string(selectedLevelIndex));
                     std::ifstream scoreFile("db/" + player1.getLevel().first + "/data.csv");
                     if (!scoreFile.is_open())
                     {
@@ -573,32 +588,33 @@ std::string Game::showMenu()
                         status.setString("\n" + scoreData);
                     }
                 }
-
-                if (event.key.code == sf::Keyboard::E)
+                if (isPlayerOne)
                 {
-                    selectedLevel = "easy/";
-                    for (auto &lv : levels)
+                    if (event.key.code == sf::Keyboard::E)
                     {
-                        lv.setFillColor(sf::Color::Green);
+                        selectedLevel = "easy/";
+                        for (auto &lv : levels)
+                        {
+                            lv.setFillColor(sf::Color::Green);
+                        }
+                    }
+                    else if (event.key.code == sf::Keyboard::M)
+                    {
+                        selectedLevel = "medium/";
+                        for (auto &lv : levels)
+                        {
+                            lv.setFillColor(sf::Color::Yellow);
+                        }
+                    }
+                    else if (event.key.code == sf::Keyboard::H)
+                    {
+                        selectedLevel = "hard/";
+                        for (auto &lv : levels)
+                        {
+                            lv.setFillColor(sf::Color::Red);
+                        }
                     }
                 }
-                else if (event.key.code == sf::Keyboard::M)
-                {
-                    selectedLevel = "medium/";
-                    for (auto &lv : levels)
-                    {
-                        lv.setFillColor(sf::Color::Yellow);
-                    }
-                }
-                else if (event.key.code == sf::Keyboard::H)
-                {
-                    selectedLevel = "hard/";
-                    for (auto &lv : levels)
-                    {
-                        lv.setFillColor(sf::Color::Red);
-                    }
-                }
-
                 // this will send the selected level to the 2nd player if it is not solomode
                 if (isPlayerOne && !isSoloMode)
                 {
@@ -607,7 +623,20 @@ std::string Game::showMenu()
                 willClientGetMsg = false; // it will reset the client message
                 if (!isSoloMode && !isPlayerOne && !willClientGetMsg)
                 {
+                    prevData = selectedLevel;
                     selectedLevel = client->getReceivedData();
+                    if (!isSoloMode && !isPlayerOne)
+                    {
+                        prevData = selectedLevel;
+                        selectedLevel = client->getReceivedData();
+                        if (selectedLevel != "exit")
+                        {
+                            std::string lvName = "";
+                            lvName = selectedLevel.substr(0, selectedLevel.length() - 1);
+                            selectedLevelIndex = std::stoi(selectedLevel.substr(selectedLevel.length() - 1, selectedLevel.length()));
+                            selectedLevel = lvName;
+                        }
+                    }
                     willClientGetMsg = true;
                 }
                 if (isPlayerOne)
@@ -635,20 +664,26 @@ std::string Game::showMenu()
                             break;
                         }
                     }
-                    if (!isSoloMode)
+                    if (!isSoloMode && isPlayerOne)
                         server->sendData(selectedLevel + std::to_string(selectedLevelIndex));
                 }
 
-                if (event.key.code == sf::Keyboard::Enter && event.key.control && (isPlayerOne))
+                if (event.key.code == sf::Keyboard::Enter && event.key.control)
                 {
-
                     window.close();
+                    if (!isSoloMode)
+                    {
+                        if (isPlayerOne)
+                        {
+                            server->sendData("exit");
+                        }
+                    }
+
+                    player1.updateLevel(selectedLevel.substr(0, selectedLevel.length() - 1), std::to_string(selectedLevelIndex));
+                    if (!isSoloMode)
+                        player2.updateLevel(selectedLevel.substr(0, selectedLevel.length() - 1), std::to_string(selectedLevelIndex));
                     return selectedLevel + std::to_string(selectedLevelIndex);
                 }
-
-                player1.updateLevel(selectedLevel.substr(0, selectedLevel.length() - 1), std::to_string(selectedLevelIndex));
-                if (!isSoloMode)
-                    player2.updateLevel(selectedLevel.substr(0, selectedLevel.length() - 1), std::to_string(selectedLevelIndex));
             }
         }
 
@@ -939,23 +974,23 @@ void Game::server_client_UI()
 
 void Game::showPauseMenu(bool willShow)
 {
+    sf::RectangleShape pauseBox(sf::Vector2f(WIDTH, HEIGHT));
+    pauseBox.setPosition(0, 0);
+    pauseBox.setFillColor(sf::Color(10, 20, 20, 200));
+
     sf::Text pauseText("Game Paused", font, 56);
     pauseText.setPosition(WIDTH / 2 - pauseText.getLocalBounds().width / 2, HEIGHT / 2 - 150);
     pauseText.setFillColor(WHITE);
 
-    sf::Text resumeText("Press Ctrl+Space to save current Data", font, 20);
+    sf::Text resumeText("Press Esc to resume", font, 20);
     resumeText.setPosition(WIDTH / 2 - pauseText.getLocalBounds().width, HEIGHT / 2 - 50);
     resumeText.setFillColor(WHITE);
 
-    sf::Text exitText("Press Q to Quit Game", font, 20);
-    exitText.setPosition(WIDTH / 2 - pauseText.getLocalBounds().width, HEIGHT / 2);
-    exitText.setFillColor(WHITE);
-
     if (willShow)
     {
+        window.draw(pauseBox);
         window.draw(pauseText);
         window.draw(resumeText);
-        window.draw(exitText);
         return;
     }
 }
