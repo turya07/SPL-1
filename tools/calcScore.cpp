@@ -17,16 +17,9 @@ typedef struct ScoreBlock
 // Function to calculate score from eatenFruits and elapsedTime
 INT calculateScore(INT eatenFruits, INT elapsedTime)
 {
-    // Base score calculation
     INT baseScore = eatenFruits * 100;
-
-    // Bonus for eating fruits quickly
-    INT quickBonus = max(ZERO, 500 - elapsedTime); // Bonus decreases as time increases
-
-    // Penalty for taking too long
+    INT quickBonus = max(ZERO, 500 - elapsedTime);   // Bonus decreases as time increases
     INT timePenalty = max(ZERO, elapsedTime - 1000); // Penalty starts after 10 seconds
-
-    // Multiplier for consecutive fruits eaten within a short time frame
     double multiplier = 1.0;
     if (elapsedTime < 500) // If all fruits are eaten within 5 seconds
     {
@@ -36,11 +29,9 @@ INT calculateScore(INT eatenFruits, INT elapsedTime)
     {
         multiplier = 1.2;
     }
-
     // Final score calculation
     INT finalScore = static_cast<INT>((baseScore + quickBonus - timePenalty) * multiplier);
 
-    // Ensure the score is not negative
     return max(ZERO, finalScore);
 }
 

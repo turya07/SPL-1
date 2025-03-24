@@ -76,6 +76,7 @@ public:
 private:
     unsigned int score = 0; // SCORE Variable
     int64_t time = 0;
+    int64_t lastTime = 0;
     int totalFruits = 0;
     bool isMenuOpen = false;
     bool isPlayerOne = true; // that denotes server if true else client
@@ -137,6 +138,15 @@ void Game::initGame()
 
 void Game::playGame(std::string lv, std::string plyName)
 {
+
+    // reset previous data
+    score = 0;
+    time = 0;
+    lastTime = 0;
+    totalFruits = 0;
+    isMenuOpen = false;
+    isShowScoreBoard = false;
+
     std::string lv1 = "";
     std::string lv2 = "";
     // police
@@ -271,6 +281,7 @@ void Game::playGame(std::string lv, std::string plyName)
                 police2.deleteIt();
                 theif.deleteIt();
                 player1.deleteIt();
+                totalFruits = 0;
                 if (!isSoloMode)
                 {
                     player2.deleteIt();
@@ -285,7 +296,7 @@ void Game::playGame(std::string lv, std::string plyName)
                     isMenuOpen = !isMenuOpen;
                 }
 
-                else if (event.key.code == sf::Keyboard::Space && event.key.control && isMenuOpen)
+                else if (event.key.code == sf::Keyboard::Space && event.key.control && isShowScoreBoard)
                 {
                     this->scoreBoard.setString("Score: " + std::to_string(score) + ", Saving Data...");
 
@@ -294,10 +305,14 @@ void Game::playGame(std::string lv, std::string plyName)
                     {
                         std::cout << "Data saved successfully" << std::endl;
                         this->scoreBoard.setString("Score: " + std::to_string(score) + ", Data Saved Successfully");
+                        window.clear();
+                        window.draw(scoreBoard);
+                        window.display();
                         sf::sleep(sf::seconds(2));
 
                         window.close();
                         // if a match is over, delete everything
+                        isSoloMode = false;
                         blocks.clear();
                         fruits.clear();
                         police1.deleteIt();
@@ -307,40 +322,43 @@ void Game::playGame(std::string lv, std::string plyName)
                     }
                     else
                     {
+                        window.clear();
                         this->scoreBoard.setString("Score: " + std::to_string(score) + ", Failed to save data");
+                        window.draw(scoreBoard);
+                        window.display();
                         sf::sleep(sf::seconds(2));
                         this->scoreBoard.setString("Score: " + std::to_string(score));
                     }
                 }
-                if (event.type == sf::Event::KeyPressed)
+                if (event.type == sf::Event::KeyPressed && !isMenuOpen && !isShowScoreBoard)
                 {
                     theif.move(event, blocks.front().front().getPosition(), blocks.back().back().getPosition(), blocks);
+                    if (isPlayerOne)
+                    {
+                        player1.move(theif.getPosition());
+                    }
+                    else if (!isSoloMode)
+                    {
+                        player2.move(theif.getPosition());
+                    }
                 }
             }
         }
 
         window.clear();
-        if (isPlayerOne)
-        {
-            player1.move(theif.getPosition());
-        }
-        else if (!isSoloMode)
-        {
-            player2.move(theif.getPosition());
-        }
 
-        if (player1.getScore() == totalFruits && totalFruits != 0)
+        if (isSoloMode && player1.getScore() == totalFruits && totalFruits != 0)
         {
             sf::Text congrats("Congratulations!", font, 36);
-            sf::Text exitButton("Press Esc to show MENU", font, 16);
+            sf::Text exitButton("Press then Ctrl+[Space] to show MENU", font, 16);
             congrats.setFillColor(GREEN);
             congrats.setPosition(WIDTH / 2 - congrats.getLocalBounds().width / 2, HEIGHT / 2);
-
             exitButton.setFillColor(YELLOW);
             exitButton.setPosition(WIDTH / 2 - exitButton.getLocalBounds().width / 2, HEIGHT / 2 + 36 + 16);
             window.draw(congrats);
             window.draw(exitButton);
             window.display();
+            isShowScoreBoard = true;
             continue;
         }
         for (auto &&blockx : blocks)
@@ -366,8 +384,6 @@ void Game::playGame(std::string lv, std::string plyName)
             }
         }
 
-        time = (int64_t)clock.getElapsedTime().asMilliseconds();
-
         window.draw(title);
         theif.draw(window);
         police1.draw(window);
@@ -378,10 +394,16 @@ void Game::playGame(std::string lv, std::string plyName)
         //     player2.draw(window);
         window.draw(otherInfo);
         window.draw(scoreBoard);
-        timebox.draw(window, time);
+        timebox.draw(window, time / 1000);
         if (isMenuOpen)
         {
             showPauseMenu(isMenuOpen);
+            clock.restart();
+            lastTime = time;
+        }
+        else
+        {
+            time = (int64_t)clock.getElapsedTime().asMilliseconds()+lastTime;
         }
         window.display();
     }
